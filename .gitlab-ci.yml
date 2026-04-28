@@ -1,0 +1,72 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "22.13.0"
+  PNPM_VERSION: "9.12.0"
+
+# Test stage
+test:
+  stage: test
+  image: node:22.13.0
+  before_script:
+    - npm install -g pnpm@9.12.0
+    - pnpm install
+  script:
+    - pnpm lint
+    - pnpm check
+    - pnpm test
+  artifacts:
+    reports:
+      junit: test-results.xml
+  cache:
+    paths:
+      - node_modules/
+      - .pnpm-store/
+
+# Build stage
+build:
+  stage: build
+  image: node:22.13.0
+  before_script:
+    - npm install -g pnpm@9.12.0
+    - pnpm install
+  script:
+    - pnpm build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 day
+  cache:
+    paths:
+      - node_modules/
+      - .pnpm-store/
+
+# Deploy to Railway (optional)
+deploy_railway:
+  stage: deploy
+  image: node:22.13.0
+  before_script:
+    - npm install -g @railway/cli
+  script:
+    - railway login --token $RAILWAY_TOKEN
+    - railway up
+  only:
+    - main
+  when: manual
+
+# Deploy to Fly.io (optional)
+deploy_flyio:
+  stage: deploy
+  image: node:22.13.0
+  before_script:
+    - curl -L https://fly.io/install.sh | sh
+    - export PATH="/root/.fly/bin:$PATH"
+  script:
+    - flyctl auth login --token $FLY_API_TOKEN
+    - flyctl deploy
+  only:
+    - main
+  when: manual

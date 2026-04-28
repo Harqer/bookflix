@@ -1,0 +1,36 @@
+# BookCinema: Studio-in-a-Box AI Pipeline
+
+BookCinema is an autonomous cinematic production platform that transforms full books into long-form movies. It uses a 5-agent orchestration engine to handle everything from narrative analysis to 3D previz and final compositing.
+
+## Project Structure
+
+- `/app`: Expo mobile application (Frontend).
+- `/server`: Express backend (Orchestration & API).
+- `/server/_core`: Core infrastructure (LLM, Auth, DB, trpc).
+- `/server/mcp`: Model Context Protocol servers for DCC tools (Blender, Nuke).
+- `/drizzle`: Database schema and migrations (Neon/Postgres).
+- `/scripts`: Specialized scripts for fine-tuning and deployment.
+
+## Orchestration Pipeline (v4)
+
+1. **Book Analyst**: Breaks books into chapters and initializes the "World Bible".
+2. **Continuity Supervisor**: Manages persistent narrative state (characters, locations).
+3. **Screenwriter**: Generates industry-standard screenplays (Save the Cat framework).
+4. **Visual Director**: Calculates mathematically precise camera trajectories (GenDoP) and lighting.
+5. **Video Producer**: Coordinates GenAI keyframe generation and DCC rendering.
+
+## AI Agent Interaction
+
+Agents should use the following patterns:
+- **Context**: Always reference the `WorldBible` for narrative consistency.
+- **Tools**: Use the MCP tools (`blender`, `nuke`) for technical execution.
+- **Isolation**: Production assets are isolated by `userId` and `bookId`.
+
+## Technical Stack
+
+- **Auth**: Clerk (Multi-tenant/Studio support).
+- **Compute**: Fluid Compute (Serverless Vercel runtime).
+- **3D Engine**: Blender (controlled via MCP).
+- **Compositing**: Nuke (controlled via MCP).
+- **Database**: Drizzle ORM + Neon.
+- **UI**: React Native Reanimated + Tailwind (NativeWind).
