@@ -2,18 +2,14 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
-    "types": [
-      "node",
-      "nativewind/types"
-    ],
+    "types": ["node", "convex"],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@shared/*": [
-        "./shared/*"
-      ]
+      "@/*": ["./*"],
+      "@shared/*": ["./shared/*"],
+      "convex/react-clerk": ["./node_modules/convex/dist/esm-types/react-clerk/index.d.ts"],
+      "convex/react": ["./node_modules/convex/dist/esm-types/react/index.d.ts"]
     }
   },
   "include": [
@@ -23,8 +19,5 @@
     "expo-env.d.ts",
     "nativewind-env.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "exclude": ["node_modules", "dist", "convex"]
 }

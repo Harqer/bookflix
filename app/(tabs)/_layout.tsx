@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform } from "react-native";
+import { BlurView } from "expo-blur";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -10,7 +11,7 @@ export default function TabLayout() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const bottomPadding = Platform.OS === "web" ? 12 : Math.max(insets.bottom, 8);
-  const tabBarHeight = 56 + bottomPadding;
+  const tabBarHeight = 64 + bottomPadding;
 
   return (
     <Tabs
@@ -19,14 +20,27 @@ export default function TabLayout() {
         tabBarInactiveTintColor: colors.muted,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarBackground: () => (
+          <BlurView
+            intensity={80}
+            tint="dark"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+        ),
         tabBarStyle: {
-          paddingTop: 8,
+          paddingTop: 12,
           paddingBottom: bottomPadding,
           height: tabBarHeight,
-          backgroundColor: 'rgba(0,0,0,0.9)', // Deep black semi-transparent
+          backgroundColor: 'transparent',
           borderTopColor: 'rgba(255,255,255,0.1)',
           borderTopWidth: 0.5,
-          position: 'absolute', // Allows content to flow behind
+          position: 'absolute',
           elevation: 0,
         },
 

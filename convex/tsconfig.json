@@ -1,0 +1,15 @@
+{
+  /* This tsconfig.json is for the Convex backend functions. */
+  "compilerOptions": {
+    /* Standard Convex settings */
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "skipLibCheck": true,
+    "lib": ["ESNext"],
+    "strict": true,
+    "isolatedModules": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"]
+}

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Appearance, View, useColorScheme as useSystemColorScheme } from "react-native";
+import { SafeAreaProvider, type Metrics } from "react-native-safe-area-context";
 import { colorScheme as nativewindColorScheme, vars } from "nativewind";
 
 import { SchemeColors, type ColorScheme } from "@/constants/theme";
@@ -11,7 +12,12 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  initialMetrics?: Metrics;
+};
+
+export function ThemeProvider({ children, initialMetrics }: ThemeProviderProps) {
   const systemScheme = useSystemColorScheme() ?? "light";
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(systemScheme);
 
@@ -65,7 +71,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={value}>
-      <View style={[{ flex: 1 }, themeVariables]}>{children}</View>
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <View style={[{ flex: 1 }, themeVariables]}>{children}</View>
+      </SafeAreaProvider>
     </ThemeContext.Provider>
   );
 }

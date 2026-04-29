@@ -1,5 +1,4 @@
 import "@/global.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -16,8 +15,12 @@ import {
 } from "react-native-safe-area-context";
 import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
-import { trpc, createTRPCClient } from "@/lib/trpc";
-import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexReactClient } from "convex/react";
+import {
+  initManusRuntime,
+  subscribeSafeAreaInsets,
+} from "@/lib/_core/manus-runtime";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -27,9 +30,43 @@ export const unstable_settings = {
 };
 
 import * as SecureStore from "expo-secure-store";
-import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth, useUser } from "@clerk/clerk-expo";
+import * as Sentry from "@sentry/react-native";
+
+Sentry.init({
+  dsn: "https://f91178c0ccc03bba73f7ca1a824ae463@o4511300849631232.ingest.us.sentry.io/4511300862345216",
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Performance Monitoring
+  tracesSampleRate: 1.0,
+
+  // 🤖 AI Monitoring (2026 Edition)
+  // Tracks costs and token usage for cinematic agents
+  _experiments: {
+    aiMonitoring: true,
+  },
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [
+    Sentry.mobileReplayIntegration(),
+    Sentry.feedbackIntegration(),
+  ],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL!;
+
+const convex = new ConvexReactClient(CONVEX_URL);
 
 const tokenCache = {
   async getToken(key: string) {
@@ -56,7 +93,26 @@ const tokenCache = {
   },
 };
 
-export default function RootLayout() {
+// 🛡️ Sentry Identity Sync: Link Clerk User to Sentry Events
+function SentryIdentitySync() {
+  const { user } = useUser();
+  
+  useEffect(() => {
+    if (user) {
+      Sentry.setUser({
+        id: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+        username: user.fullName || undefined,
+      });
+    } else {
+      Sentry.setUser(null);
+    }
+  }, [user]);
+
+  return null;
+}
+
+export default Sentry.wrap(function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
 
@@ -79,25 +135,14 @@ export default function RootLayout() {
     return () => unsubscribe();
   }, [handleSafeAreaUpdate]);
 
-  // Create clients once and reuse them
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // Disable automatic refetching on window focus for mobile
-            refetchOnWindowFocus: false,
-            // Retry failed requests once
-            retry: 1,
-          },
-        },
-      }),
-  );
-  const [trpcClient] = useState(() => createTRPCClient());
+  // Convex handles its own caching and synchronization natively
 
   // Ensure minimum 8px padding for top and bottom on mobile
   const providerInitialMetrics = useMemo(() => {
-    const metrics = initialWindowMetrics ?? { insets: initialInsets, frame: initialFrame };
+    const metrics = initialWindowMetrics ?? {
+      insets: initialInsets,
+      frame: initialFrame,
+    };
     return {
       ...metrics,
       insets: {
@@ -109,46 +154,24 @@ export default function RootLayout() {
   }, [initialInsets, initialFrame]);
 
   const content = (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <ClerkLoaded>
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+    >
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <SentryIdentitySync />
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <trpc.Provider client={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>
-              {/* Default to hiding native headers so raw route segments don't appear (e.g. "(tabs)", "products/[id]"). */}
-              {/* If a screen needs the native header, explicitly enable it and set a human title via Stack.Screen options. */}
-              {/* in order for ios apps tab switching to work properly, use presentation: "fullScreenModal" for login page, whenever you decide to use presentation: "modal*/}
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="oauth/callback" />
-              </Stack>
-              <StatusBar style="auto" />
-            </QueryClientProvider>
-          </trpc.Provider>
+          <ThemeProvider initialMetrics={providerInitialMetrics}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </ThemeProvider>
         </GestureHandlerRootView>
-      </ClerkLoaded>
+      </ConvexProviderWithClerk>
     </ClerkProvider>
   );
 
-  const shouldOverrideSafeArea = Platform.OS === "web";
-
-  if (shouldOverrideSafeArea) {
-    return (
-      <ThemeProvider>
-        <SafeAreaProvider initialMetrics={providerInitialMetrics}>
-          <SafeAreaFrameContext.Provider value={frame}>
-            <SafeAreaInsetsContext.Provider value={insets}>
-              {content}
-            </SafeAreaInsetsContext.Provider>
-          </SafeAreaFrameContext.Provider>
-        </SafeAreaProvider>
-      </ThemeProvider>
-    );
-  }
-
-  return (
-    <ThemeProvider>
-      <SafeAreaProvider initialMetrics={providerInitialMetrics}>{content}</SafeAreaProvider>
-    </ThemeProvider>
-  );
-}
-
+  return content;
+});

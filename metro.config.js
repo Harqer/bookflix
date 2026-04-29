@@ -1,11 +1,15 @@
-const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
+import { getDefaultConfig } from "expo/metro-config";
+import { withNativeWind } from "nativewind/metro";
+import { withSentryConfig } from "@sentry/react-native/metro";
 
-const config = getDefaultConfig(__dirname);
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(process.cwd());
 
-module.exports = withNativeWind(config, {
-  input: "./global.css",
-  // Force write CSS to file system instead of virtual modules
-  // This fixes iOS styling issues in development mode
-  forceWriteFileSystem: true,
-});
+export default withSentryConfig(
+  withNativeWind(config, {
+    input: "./global.css",
+    // 🚀 Performance: NativeWind v4 Force Write
+    // Fixes HMR and styling sync issues in 2026-grade environments
+    forceWriteFileSystem: true,
+  })
+);

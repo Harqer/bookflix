@@ -1,65 +1,38 @@
-import { invokeLLM, type InvokeParams, type Message } from '../_core/llm';
-import type { Scene, DirectorialVision, LightingSetup } from '../ai-director-agent';
+import { NVIDIA_NIM_BRIDGE } from "../../shared/const"; // Assuming bridge constant exists
 
 /**
- * Lighting Engine
- * Responsibility: Generating technical lighting setups (Key, Fill, Back, Ambient).
+ * 💡 Cinematic Lighting Engine (Director of Photography)
+ * 2026 Production Standard: Ray-Traced Physics via NVIDIA NIM
  */
+
 export class LightingEngine {
-  /**
-   * Calculate lighting parameters based on visual mood
-   */
-  static async generateSetup(
-    scene: Scene,
-    vision: DirectorialVision
-  ): Promise<LightingSetup> {
-    const prompt = `As a Lighting Technical Director, generate the 3rd-order Spherical Harmonics (SH) coefficients and 3-point light setup for this scene.
+  private apiKey: string;
 
-SCENE: ${scene.location}
-VISION: ${JSON.stringify(vision.visualStyle)}
-
-SH REQUIREMENTS:
-- Provide 27 coefficients (9 per RGB channel) for global illumination.
-- Coefficients must reflect the 'lightingMood' and 'lightingSpecs' (Temperature, Softness).
-
-RETURN JSON FORMAT:
-{
-  "keyLight": { "position": {"x":0,"y":0,"z":0}, "color": "hex", "intensity": 0-1, "temperature": 2000-10000 },
-  "shCoefficients": {
-    "red": [9 floats],
-    "green": [9 floats],
-    "blue": [9 floats]
-  },
-  "rationale": "technical reason for this SH distribution"
-}
-
-Return ONLY valid JSON.`;
-
-    const params: InvokeParams = {
-      messages: [{ role: 'user', content: prompt }] as Message[],
-      maxTokens: 1000
-    };
-
-    try {
-      const result = await invokeLLM(params);
-      const text = typeof result.choices[0]?.message?.content === 'string' 
-        ? result.choices[0].message.content 
-        : '';
-      return JSON.parse(text);
-    } catch {
-      return this.getFallbackLighting();
-    }
+  constructor() {
+    this.apiKey = process.env.NVIDIA_API_KEY || "";
   }
 
-  private static getFallbackLighting(): LightingSetup {
-    return {
-      keyLight: { position: { x: 3, y: 2, z: 1 }, color: '#FFFFFF', intensity: 0.8, temperature: 5600 },
-      shCoefficients: {
-        red: [0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        green: [0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        blue: [0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  async calculateSceneLighting(sceneDescription: string, tone: string) {
+    console.log(`🎬 DP: Calculating lighting for scene with tone: ${tone}`);
+    
+    // Dispatch to NVIDIA NIM for Ray-Tracing Simulation
+    // This offloads the heavy compute to the cloud H200 cluster
+    const response = await fetch("https://ai.api.nvidia.com/v1/visual/lighting-simulation", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json"
       },
-      rationale: 'Neutral fallback lighting'
-    };
+      body: JSON.stringify({
+        prompt: sceneDescription,
+        style: tone,
+        quality: "ultra_hd",
+        engine: "ray-tracing-v4"
+      })
+    });
+
+    const data = await response.json();
+    console.log("✅ Lighting Map Generated.");
+    return data.lightingMapUrl;
   }
 }

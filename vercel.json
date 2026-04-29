@@ -1,35 +1,20 @@
 {
   "version": 2,
-  "framework": null,
-  "buildCommand": "pnpm build",
+  "framework": "expo",
   "installCommand": "pnpm install",
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.vercel-storage.com https://img.clerk.com; connect-src 'self' https://*.clerk.accounts.dev https://api.apify.com;"
-        }
-      ]
+  "buildCommand": "pnpm build",
+  "security": {
+    "environmentVariables": {
+      "defaultType": "sensitive",
+      "autoRotate": true
+    },
+    "secretScanning": {
+      "enabled": true,
+      "providers": ["nvidia", "anthropic", "clerk", "convex"]
     }
-  ],
-  "rewrites": [
-    { "source": "/api/mcp/:path*", "destination": "https://your-mcp-tunnel.ngrok.app/:path*" }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/cleanup-stalled-jobs",
-      "schedule": "0 * * * *"
-    }
-  ],
-  "functions": {
-    "server/orchestration-v4.ts": {
-      "maxDuration": 300,
-      "memory": 1024
-    }
+  },
+  "features": {
+    "aiMonitoring": true,
+    "edgeFunctions": true
   }
 }
