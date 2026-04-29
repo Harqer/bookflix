@@ -1,6 +1,10 @@
 import { ApifyService } from "./_core/apify-service";
 import { RAGEngine } from "./rag-engine";
 
+export type ResearchResult = 
+  | { success: true; pointsCount: number }
+  | { success: false; error: any };
+
 /**
  * Enterprise Research Agent
  * Implements Self-Correction and Multi-Source verification to eliminate hallucinations.
@@ -9,13 +13,13 @@ export class ResearchAgent {
   /**
    * Performs external research with fallback strategies (Self-Correction)
    */
-  static async performResearch(bookId: string, topics: string[]) {
+  static async performResearch(bookId: string, topics: string[]): Promise<ResearchResult> {
     console.log(`[ResearchAgent] Enterprise search for: ${topics.join(', ')}`);
     
     // Strategy 1: High-Fidelity Website Content Crawler (Apify)
     try {
       const result = await this.executeCrawl("apify/website-content-crawler", topics, bookId);
-      if (result.pointsCount > 0) return result;
+      if (result.success && result.pointsCount > 0) return result;
     } catch (error) {
       console.warn("[ResearchAgent] Primary crawler failed. Triggering Self-Correction Fallback...");
     }
@@ -29,7 +33,7 @@ export class ResearchAgent {
     }
   }
 
-  private static async executeCrawl(actorId: string, topics: string[], bookId: string) {
+  private static async executeCrawl(actorId: string, topics: string[], bookId: string): Promise<ResearchResult> {
     const run = await ApifyService.runActor(actorId, {
       queries: topics.join('\n'),
       maxPagesPerQuery: 5
@@ -40,7 +44,7 @@ export class ResearchAgent {
 
     for (const item of items) {
       if (item.text || item.description) {
-        await RAGEngine.ingestBookContent(bookId, item.text || item.description);
+        await RAGEngine.ingestContent(bookId, item.text || item.description);
       }
     }
 

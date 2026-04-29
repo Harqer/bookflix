@@ -1,83 +1,42 @@
-import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
-import net from "net";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
-import { appRouter } from "../routers";
-import { createContext } from "./context";
+import cors from "cors";
+import { clerkMiddleware } from "@clerk/express";
+import { enterpriseMiddleware } from "./enterprise-middleware";
+import studioRouter from "../api/studio";
+import { SocketProvider } from "./socket-provider";
 
-function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.listen(port, () => {
-      server.close(() => resolve(true));
-    });
-    server.on("error", () => resolve(false));
-  });
-}
-
-async function findAvailablePort(startPort: number = 3000): Promise<number> {
-  for (let port = startPort; port < startPort + 20; port++) {
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  throw new Error(`No available port found starting from ${startPort}`);
-}
-
-async function startServer() {
+/**
+ * Enterprise Studio Server (Invisible Atomic Design)
+ * Aligned with FastAPI best practices for modularity and real-time streaming.
+ */
+async function bootstrap() {
   const app = express();
-  const server = createServer(app);
+  const httpServer = createServer(app);
+  const PORT = process.env.PORT || 3001;
 
-  // Enable CORS for all routes - reflect the request origin to support credentials
-  app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (origin) {
-      res.header("Access-Control-Allow-Origin", origin);
-    }
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-    );
-    res.header("Access-Control-Allow-Credentials", "true");
+  // 1. Layer: Global Middlewares (Atomic)
+  app.use(cors());
+  app.use(express.json());
+  app.use(clerkMiddleware());
+  app.use(enterpriseMiddleware);
 
-    // Handle preflight requests
-    if (req.method === "OPTIONS") {
-      res.sendStatus(200);
-      return;
-    }
-    next();
+  // 2. Layer: Real-time Infrastructure (Atomic)
+  // Initializes the Cinematic Feed (WebSocket)
+  SocketProvider.initialize(httpServer);
+  
+  // 3. Layer: Modular Routing (FastAPI sub-applications pattern)
+  app.use("/api/studio", studioRouter);
+
+  // Health Check (Atomic)
+  app.get("/health", (req, res) => {
+    res.json({ status: "healthy", websocket: "active", timestamp: new Date().toISOString() });
   });
 
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
-  registerOAuthRoutes(app);
-
-  app.get("/api/health", (_req, res) => {
-    res.json({ ok: true, timestamp: Date.now() });
-  });
-
-  app.use(
-    "/api/trpc",
-    createExpressMiddleware({
-      router: appRouter,
-      createContext,
-    }),
-  );
-
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
-
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
-  }
-
-  server.listen(port, () => {
-    console.log(`[api] server listening on port ${port}`);
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Studio Server ready at http://localhost:${PORT}`);
+    console.log(`📡 WebSocket Feed: ws://localhost:${PORT}`);
   });
 }
 
-startServer().catch(console.error);
+bootstrap().catch(console.error);

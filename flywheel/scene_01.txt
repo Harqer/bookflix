@@ -1,0 +1,15 @@
+[SCENE START]
+INT. ANCIENT LABORATORY - NIGHT
+
+A heavy brass sphere (approx 50kg) sits atop a friction-less obsidian table. 
+The lighting is dim, provided by a flickering blue plasma arc in the center of the room.
+
+The atmosphere is thick with static electricity. 
+
+The sphere begins to vibrate—a resonance frequency that matches the plasma arc.
+Suddenly, the sphere slides across the table, accelerating at exactly 2m/s^2. 
+As it reaches the edge, it doesn't fall. It orbits the plasma arc in a perfect 4D spiral, 
+defying standard 3D gravity but obeying a complex magnetic Hamiltonian.
+
+The camera orbits the sphere as it moves, maintaining perfect focus on the brass texture.
+[SCENE END]

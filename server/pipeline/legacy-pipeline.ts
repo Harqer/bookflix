@@ -51,7 +51,7 @@ export interface WorldBibleLocation {
 }
 
 export interface WorldBibleData {
-  bookId: number;
+  bookId: string;
   title: string;
   author: string;
   genre: string;
@@ -74,7 +74,7 @@ export interface PipelineLogEntry {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function log(
-  jobId: number,
+  jobId: string,
   agent: string,
   level: PipelineLogEntry["level"],
   message: string,
@@ -98,8 +98,8 @@ function slugify(text: string): string {
 // ─── Agent 1: Book Analyst ────────────────────────────────────────────────────
 
 export async function runBookAnalyst(
-  jobId: number,
-  bookId: number,
+  jobId: string,
+  bookId: string,
   rawText: string,
   title: string,
   author: string,
@@ -228,8 +228,8 @@ Return a JSON object with this exact structure:
 // ─── Agent 2: Continuity Supervisor ──────────────────────────────────────────
 
 export async function runContinuitySupervisor(
-  jobId: number,
-  bookId: number,
+  jobId: string,
+  bookId: string,
   chapterNumber: number,
   chapterContent: string,
   currentWorldBible: WorldBibleData,
@@ -311,11 +311,89 @@ Return a JSON object with ONLY the changes/additions to the World Bible:
   return currentWorldBible;
 }
 
+/**
+ * Task: Domain Mapper (Atomic)
+ * Converts database records to the typed WorldBible domain model.
+ */
+async function getValidatedWorldBible(bookId: string, book: any): Promise<WorldBibleData> {
+  const worldBibleData = await db.getWorldBible(bookId);
+  return {
+    bookId,
+    title: book.title,
+    author: book.author || "Unknown",
+    genre: book.genre || "Drama",
+    era: (worldBibleData?.era as string) || "Contemporary",
+    tone: (worldBibleData?.tone as string) || "dramatic",
+    themes: (worldBibleData?.themes as string[]) || [],
+    characters: (worldBibleData?.characters as Record<string, WorldBibleCharacter>) || {},
+    locations: (worldBibleData?.locations as Record<string, WorldBibleLocation>) || {},
+    timeline: (worldBibleData?.timeline as any[]) || [],
+    chapterSummaries: {},
+  };
+}
+
+/**
+ * Orchestrate: Chapter Pipeline (Composite)
+ * Executes the 4-stage cinematic pipeline for a single chapter.
+ */
+async function processChapter(
+  jobId: string,
+  bookId: string,
+  chapterData: any,
+  worldBible: WorldBibleData,
+  progress: number
+): Promise<void> {
+  // Get chapter from DB
+  const dbChapter = await db.getChapterByNumber(bookId, chapterData.number);
+  if (!dbChapter) return;
+
+  // Stage 2: Continuity check
+  await db.updateJobStage(jobId, "screenplay_generation", progress);
+  const updatedBible = await runContinuitySupervisor(
+    jobId,
+    bookId,
+    chapterData.number,
+    chapterData.content,
+    worldBible,
+  );
+
+  // Stage 3: Screenplay generation
+  await db.updateChapterStatus(dbChapter.id, "scripting");
+  const screenplay = await runScreenwriter(
+    jobId,
+    dbChapter.id,
+    chapterData.number,
+    chapterData.content,
+    updatedBible,
+  );
+
+  // Stage 4: Visual direction
+  await db.updateJobStage(jobId, "visual_direction", progress + 5);
+  await db.updateChapterStatus(dbChapter.id, "directing");
+  const scenes = await runVisualDirector(
+    jobId,
+    dbChapter.id,
+    chapterData.number,
+    screenplay,
+    updatedBible,
+  );
+
+  // Stage 5: Video production (keyframes)
+  await db.updateJobStage(jobId, "video_production", progress + 10);
+  await runVideoProducer(
+    jobId,
+    dbChapter.id,
+    chapterData.number,
+    scenes,
+    updatedBible,
+  );
+}
+
 // ─── Agent 3: Screenwriter ────────────────────────────────────────────────────
 
 export async function runScreenwriter(
-  jobId: number,
-  chapterId: number,
+  jobId: string,
+  chapterId: string,
   chapterNumber: number,
   chapterContent: string,
   worldBible: WorldBibleData,
@@ -391,8 +469,8 @@ FADE OUT.`;
 // ─── Agent 4: Visual Director ─────────────────────────────────────────────────
 
 export async function runVisualDirector(
-  jobId: number,
-  chapterId: number,
+  jobId: string,
+  chapterId: string,
   chapterNumber: number,
   screenplay: string,
   worldBible: WorldBibleData,
@@ -488,8 +566,8 @@ Return a JSON array:
 // ─── Agent 5: Video Producer ──────────────────────────────────────────────────
 
 export async function runVideoProducer(
-  jobId: number,
-  chapterId: number,
+  jobId: string,
+  chapterId: string,
   chapterNumber: number,
   scenes: Array<{ sceneNumber: number; visualPrompt: string; slugline: string }>,
   worldBible: WorldBibleData,
@@ -533,15 +611,16 @@ export async function runVideoProducer(
 // ─── Main Pipeline Orchestrator ───────────────────────────────────────────────
 
 export async function runFullPipeline(
-  jobId: number,
-  bookId: number,
-  userId: number,
+  jobId: string,
+  bookId: string,
+  userId: string,
+  orgId: string,
 ): Promise<void> {
   log(jobId, "Orchestrator", "info", "BookCinema AI Pipeline started");
 
   try {
     // Get book data
-    const book = await db.getBookById(bookId);
+    const book = await db.getBookById(bookId, orgId);
     if (!book) throw new Error(`Book ${bookId} not found`);
 
     await db.updateJobStage(jobId, "book_analysis", 5);
@@ -575,66 +654,11 @@ export async function runFullPipeline(
 
       log(jobId, "Orchestrator", "info", `Processing chapter ${chapterData.number}/${totalChapters}: "${chapterData.title}"`);
 
-      // Get chapter from DB
-      const dbChapter = await db.getChapterByNumber(bookId, chapterData.number);
-      if (!dbChapter) continue;
+      // 1. Fetch State (Atomic)
+      const worldBible = await getValidatedWorldBible(bookId, book);
 
-      // Get current World Bible
-      const worldBibleData = await db.getWorldBible(bookId);
-      const worldBible: WorldBibleData = {
-        bookId,
-        title: book.title,
-        author: book.author || "Unknown",
-        genre: book.genre || "Drama",
-        era: (worldBibleData?.era as string) || "Contemporary",
-        tone: (worldBibleData?.tone as string) || "dramatic",
-        themes: (worldBibleData?.themes as string[]) || [],
-        characters: (worldBibleData?.characters as Record<string, WorldBibleCharacter>) || {},
-        locations: (worldBibleData?.locations as Record<string, WorldBibleLocation>) || {},
-        timeline: (worldBibleData?.timeline as any[]) || [],
-        chapterSummaries: {},
-      };
-
-      // Stage 2: Continuity check
-      await db.updateJobStage(jobId, "screenplay_generation", progress);
-      const updatedBible = await runContinuitySupervisor(
-        jobId,
-        bookId,
-        chapterData.number,
-        chapterData.content,
-        worldBible,
-      );
-
-      // Stage 3: Screenplay generation
-      await db.updateChapterStatus(dbChapter.id, "scripting");
-      const screenplay = await runScreenwriter(
-        jobId,
-        dbChapter.id,
-        chapterData.number,
-        chapterData.content,
-        updatedBible,
-      );
-
-      // Stage 4: Visual direction
-      await db.updateJobStage(jobId, "visual_direction", progress + 5);
-      await db.updateChapterStatus(dbChapter.id, "directing");
-      const scenes = await runVisualDirector(
-        jobId,
-        dbChapter.id,
-        chapterData.number,
-        screenplay,
-        updatedBible,
-      );
-
-      // Stage 5: Video production (keyframes)
-      await db.updateJobStage(jobId, "video_production", progress + 10);
-      await runVideoProducer(
-        jobId,
-        dbChapter.id,
-        chapterData.number,
-        scenes,
-        updatedBible,
-      );
+      // 2. Execute Chapter Pipeline (Composite)
+      await processChapter(jobId, bookId, chapterData, worldBible, progress);
     }
 
     // ── Final Assembly ─────────────────────────────────────────────────────

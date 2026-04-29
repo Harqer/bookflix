@@ -3,11 +3,24 @@ import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import * as db from "./db";
-import { runFullPipeline } from "./orchestration";
+import { 
+  getUserBooks, 
+  getBookById, 
+  createBook, 
+  createJob, 
+  deleteBook, 
+  getChaptersByBookId, 
+  getChapterById, 
+  getScenesByChapterId, 
+  getActiveJobForBook, 
+  getJobById, 
+  cancelJob,
+  upsertWorldBible,
+  getWorldBible
+} from "./db";
+import { runFullPipeline } from "./pipeline/linear-pipeline";
 import { AIDirectorAgent } from "./ai-director-agent";
-
-import { orchestrateV4 } from "./orchestration-v4";
+import { runEnterprisePipeline } from "./pipeline/enterprise-pipeline";
 import { ShotGridClient } from "./shotgrid-client";
 
 const shotgrid = new ShotGridClient({
@@ -18,16 +31,13 @@ const shotgrid = new ShotGridClient({
 
 export const appRouter = router({
 
-  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
@@ -35,16 +45,16 @@ export const appRouter = router({
 
   books: router({
     list: protectedProcedure.query(({ ctx }) => {
-      return db.getUserBooks(ctx.user.id);
+      return getUserBooks(ctx.user.id);
     }),
 
     getById: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
-        const book = await db.getBookById(input.id);
+        const book = await getBookById(input.id, ctx.orgId || "default");
         if (!book || book.userId !== ctx.user.id) throw new Error("Book not found");
-        const chapterList = await db.getChaptersByBookId(input.id);
-        const worldBible = await db.getWorldBible(input.id);
+        const chapterList = await getChaptersByBookId(input.id);
+        const worldBible = await getWorldBible(input.id);
         return { book, chapters: chapterList, worldBible };
       }),
 
@@ -53,36 +63,37 @@ export const appRouter = router({
         title: z.string().min(1).max(500),
         author: z.string().max(255).default("Unknown"),
         genre: z.string().max(100).default("Drama"),
-        rawText: z.string().min(100, "Book text must be at least 100 characters"),
+        rawText: z.string().min(100),
         productionStyle: z.enum(["cinematic", "animated", "documentary"]).default("cinematic"),
         tone: z.string().max(100).default("dramatic"),
       }))
       .mutation(async ({ ctx, input }) => {
         const wordCount = input.rawText.split(/\s+/).length;
-        const bookId = await db.createBook({
+        const bookId = await createBook({
           userId: ctx.user.id,
+          organizationId: ctx.orgId || "default",
           title: input.title,
           author: input.author,
           genre: input.genre,
           rawText: input.rawText,
           wordCount,
           productionStyle: input.productionStyle,
-          tone: input.tone,
           status: "analyzing",
-        });
-        const jobId = await db.createJob({
+        }, ctx.orgId || "default");
+        const jobId = await createJob({
           bookId,
           userId: ctx.user.id,
           currentStage: "book_analysis",
           overallProgress: 0,
-          logs: [] as any,
           isActive: true,
           isCancelled: false,
           startedAt: new Date(),
         });
+
+        // Trigger Enterprise Pipeline
         setImmediate(() => {
-          orchestrateV4(jobId, bookId, ctx.user.id, shotgrid).catch((err) => {
-            console.error(`[Pipeline V4] Failed for book ${bookId}:`, err);
+          runEnterprisePipeline(jobId, bookId, ctx.user.id, ctx.orgId || "default", shotgrid).catch((err) => {
+            console.error(`[Enterprise Pipeline] Failed:`, err);
           });
         });
 
@@ -90,9 +101,9 @@ export const appRouter = router({
       }),
 
     delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
-        await db.deleteBook(input.id, ctx.user.id);
+        await deleteBook(input.id, ctx.user.id);
         return { success: true };
       }),
   }),
@@ -101,22 +112,22 @@ export const appRouter = router({
 
   chapters: router({
     getById: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
-        const chapter = await db.getChapterById(input.id);
+        const chapter = await getChapterById(input.id);
         if (!chapter) throw new Error("Chapter not found");
-        const book = await db.getBookById(chapter.bookId);
+        const book = await getBookById(chapter.bookId, ctx.orgId || "default");
         if (!book || book.userId !== ctx.user.id) throw new Error("Access denied");
-        const scenes = await db.getScenesByChapterId(input.id);
+        const scenes = await getScenesByChapterId(input.id);
         return { chapter, scenes };
       }),
 
     getByBook: protectedProcedure
-      .input(z.object({ bookId: z.number() }))
+      .input(z.object({ bookId: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
-        const book = await db.getBookById(input.bookId);
+        const book = await getBookById(input.bookId, ctx.orgId || "default");
         if (!book || book.userId !== ctx.user.id) throw new Error("Access denied");
-        return db.getChaptersByBookId(input.bookId);
+        return getChaptersByBookId(input.bookId);
       }),
   }),
 
@@ -124,11 +135,11 @@ export const appRouter = router({
 
   worldBible: router({
     getByBookId: protectedProcedure
-      .input(z.object({ bookId: z.number() }))
+      .input(z.object({ bookId: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
-        const book = await db.getBookById(input.bookId);
+        const book = await getBookById(input.bookId, ctx.orgId || "default");
         if (!book || book.userId !== ctx.user.id) throw new Error("Access denied");
-        return db.getWorldBible(input.bookId);
+        return getWorldBible(input.bookId);
       }),
   }),
 
@@ -137,20 +148,18 @@ export const appRouter = router({
   aiDirector: router({
     orchestrateChapter: protectedProcedure
       .input(z.object({
-        chapterId: z.number(),
+        chapterId: z.string().uuid(),
         genre: z.string().default("drama"),
-        productionStyle: z.enum(["cinematic", "animated", "documentary"]).default("cinematic"),
       }))
       .mutation(async ({ ctx, input }) => {
-        const chapter = await db.getChapterById(input.chapterId);
+        const chapter = await getChapterById(input.chapterId);
         if (!chapter) throw new Error("Chapter not found");
         
-        const book = await db.getBookById(chapter.bookId);
+        const book = await getBookById(chapter.bookId, ctx.orgId || "default");
         if (!book || book.userId !== ctx.user.id) throw new Error("Access denied");
         
-        const worldBible = await db.getWorldBible(book.id);
+        const worldBible = await getWorldBible(book.id);
         
-        // Initialize AI Director Agent
         const director = new AIDirectorAgent({
           genre: input.genre,
           narrativeContext: book.tone || 'dramatic',
@@ -159,7 +168,6 @@ export const appRouter = router({
           targetDuration: 120
         });
         
-        // Orchestrate chapter into scenes with full cinematography
         const directorDecisions = await director.orchestrateChapter(
           `chapter-${input.chapterId}`,
           chapter.rawContent,
@@ -179,20 +187,20 @@ export const appRouter = router({
 
   processing: router({
     getStatus: protectedProcedure
-      .input(z.object({ bookId: z.number() }))
+      .input(z.object({ bookId: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
-        const book = await db.getBookById(input.bookId);
+        const book = await getBookById(input.bookId, ctx.orgId || "default");
         if (!book || book.userId !== ctx.user.id) throw new Error("Access denied");
-        const job = await db.getActiveJobForBook(input.bookId);
+        const job = await getActiveJobForBook(input.bookId);
         return { book, job };
       }),
 
     cancel: protectedProcedure
-      .input(z.object({ jobId: z.number() }))
+      .input(z.object({ jobId: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
-        const job = await db.getJobById(input.jobId);
+        const job = await getJobById(input.jobId);
         if (!job || job.userId !== ctx.user.id) throw new Error("Access denied");
-        await db.cancelJob(input.jobId);
+        await cancelJob(input.jobId);
         return { success: true };
       }),
   }),

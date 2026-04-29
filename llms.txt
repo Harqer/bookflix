@@ -1,36 +1,27 @@
-# BookCinema: Studio-in-a-Box AI Pipeline
+# BookCinema Enterprise Model Registry (v2026.04)
 
-BookCinema is an autonomous cinematic production platform that transforms full books into long-form movies. It uses a 5-agent orchestration engine to handle everything from narrative analysis to 3D previz and final compositing.
+## 1. The Creative Core (Script & Logic)
+- **Primary Orchestrator**: `gpt-4o-2024-08-06` (Director)
+- **Aesthetic Auditor**: `claude-3-5-sonnet-20240620` (Critic/RLAIF)
+- **Context Specialist**: `gemini-1.5-pro-002` (Deep Book Analysis)
 
-## Project Structure
+## 2. Visual Production (HuggingFace / Specialized)
+- **Image/Frame Base**: `black-forest-labs/FLUX.1-schnell` (Speed-optimized)
+- **Video Temporal**: `THUDM/CogVideoX-5b` (Cinematic consistency)
+- **Consistency LoRA**: `x-labs-flux-controlnet-canny` (Structure lock)
 
-- `/app`: Expo mobile application (Frontend).
-- `/server`: Express backend (Orchestration & API).
-- `/server/_core`: Core infrastructure (LLM, Auth, DB, trpc).
-- `/server/mcp`: Model Context Protocol servers for DCC tools (Blender, Nuke).
-- `/drizzle`: Database schema and migrations (Neon/Postgres).
-- `/scripts`: Specialized scripts for fine-tuning and deployment.
+## 3. DCC Automation (GitHub / Fine-Tuned)
+- **Blender (3D Architecture)**: `Blender-GPT-Llama-3-70B` (Specialized Python API)
+- **Houdini (VFX/Sims)**: `NeuralVDB-Houdini-V1` (Predictive fluid simulation)
+- **Nuke (Compositing)**: `SAM-2-Realtime` (Automated Rotoscoping/Masking)
+- **Maya (Animation)**: `RigNet-v2` (Automated Skeletal Rigging)
 
-## Orchestration Pipeline (v4)
+## 4. Audio & Sensory (API-Driven)
+- **Voiceover**: `eleven-multilingual-v2` (Dialogue)
+- **Cinematic Score**: `suno-v4-pro` (Thematic music)
+- **Foley/SFX**: `stable-audio-open-1.0` (Ambient sound)
 
-1. **Book Analyst**: Breaks books into chapters and initializes the "World Bible".
-2. **Continuity Supervisor**: Manages persistent narrative state (characters, locations).
-3. **Screenwriter**: Generates industry-standard screenplays (Save the Cat framework).
-4. **Visual Director**: Calculates mathematically precise camera trajectories (GenDoP) and lighting.
-5. **Video Producer**: Coordinates GenAI keyframe generation and DCC rendering.
-
-## AI Agent Interaction
-
-Agents should use the following patterns:
-- **Context**: Always reference the `WorldBible` for narrative consistency.
-- **Tools**: Use the MCP tools (`blender`, `nuke`) for technical execution.
-- **Isolation**: Production assets are isolated by `userId` and `bookId`.
-
-## Technical Stack
-
-- **Auth**: Clerk (Multi-tenant/Studio support).
-- **Compute**: Fluid Compute (Serverless Vercel runtime).
-- **3D Engine**: Blender (controlled via MCP).
-- **Compositing**: Nuke (controlled via MCP).
-- **Database**: Drizzle ORM + Neon.
-- **UI**: React Native Reanimated + Tailwind (NativeWind).
+## 5. Deployment Strategy (Infrastructure)
+- **Local MCP**: Stdio Transport (Low Latency)
+- **Cloud MCP**: SSE Transport (Scalable Render Farm)
+- **Registry**: MCP.run / LangSmith Hosted Toolset

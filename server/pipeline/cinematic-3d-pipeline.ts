@@ -4,13 +4,13 @@
  * Full-book processing with 1M-token context (Gemini 3.1 Pro)
  */
 
-import * as db from './db';
-import { invokeLLM } from './_core/llm';
-import { AIDirectorAgent } from './ai-director-agent';
-import { LongFormVideoCatClient } from './longformvideocat-client';
-import { Matrix3DClient } from './matrix3d-client';
-// import { RAGEngine } from './rag-engine'; // TODO: Implement RAG engine
-import { FilmAgentCollaboration } from './filmagent-collaboration';
+import * as db from '../db';
+import { invokeLLM } from '../_core/llm';
+import { AIDirectorAgent } from '../ai-director-agent';
+import { LongFormVideoCatClient } from '../longformvideocat-client';
+import { Matrix3DClient } from '../matrix3d-client';
+// import { RAGEngine } from '../rag-engine'; 
+import { FilmAgentCollaboration } from '../filmagent-collaboration';
 
 export interface BookData {
   id: string;

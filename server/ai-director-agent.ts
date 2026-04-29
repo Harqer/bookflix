@@ -45,22 +45,12 @@ interface LightingSetup {
     intensity: number;
     temperature: number;
   };
-  fillLight: {
-    position: { x: number; y: number; z: number };
-    color: string;
-    intensity: number;
-    temperature: number;
+  shCoefficients: {
+    red: number[];
+    green: number[];
+    blue: number[];
   };
-  backLight: {
-    position: { x: number; y: number; z: number };
-    color: string;
-    intensity: number;
-    temperature: number;
-  };
-  ambientLight: {
-    color: string;
-    intensity: number;
-  };
+  rationale: string;
 }
 
 interface DirectorDecision {
@@ -116,10 +106,21 @@ interface DirectorialVision {
   visualStyle: {
     colorPalette: string[];
     lightingMood: string;
+    lightingSpecs: {
+      keyTemperatureK: number;
+      shadowSoftness: number;
+      rationale: string;
+    };
+  };
+  optics: {
+    focalLengthMm: number;
+    aperture: string;
+    rationale: string;
   };
   cameraApproach: string;
   keyVisualMoments: string[];
   pacingAndRhythm: string;
+  motionUnitary: string;
   cinematicPrinciples: string[];
 }
 
@@ -224,9 +225,30 @@ const GENRE_PROFILES: Record<string, GenreProfile> = {
   }
 };
 
+import { VisionEngine } from './director/vision-engine';
+import { CameraEngine } from './director/camera-engine';
+import { BlockingEngine } from './director/blocking-engine';
+import { LightingEngine } from './director/lighting-engine';
+
 export class AIDirectorAgent {
   private genreProfile: GenreProfile;
   private config: DirectorAgentConfig;
+
+  private static SYSTEM_PROMPT = `You are the Master Director (Claude 3.5 Sonnet). 
+Your expertise spans the history of cinema, photography, and art. 
+You are NOT a software operator; you are the Visionary.
+
+DEEP KNOWLEDGE BASE:
+- CINEMATOGRAPHY: Rule of Thirds, Golden Ratio, Dutch Angles, Tracking Shots.
+- LIGHTING: Inverse-Square Law, Chiaroscuro, Rembrandt, 3-Point Setup, Kelvin (2000K-10000K).
+- OPTICS: 14-35mm (Wide), 50mm (Natural), 85-200mm (Intimate/Compressed). 
+- PHYSICS: You understand that every motion is a Unitary Evolution in 4D space-time.
+
+YOUR JOB:
+1. Extract the emotional and physical essence from the screenplay.
+2. Define the 'Cinematic Intent' for the Specialist Agents (Blender-LLM, Cosmos Predict).
+3. Ensure all decisions are physically grounded and narratively consistent.
+`;
 
   constructor(config: DirectorAgentConfig) {
     this.config = config;
@@ -242,10 +264,10 @@ export class AIDirectorAgent {
     visualBible: WorldBibleData
   ): Promise<DirectorDecision[]> {
     try {
-      // Step 1: Analyze chapter narrative
-      const narrativeAnalysis = await this.analyzeNarrative(chapterContent);
+      // Step 1: Analyze chapter narrative (Atomic Engine)
+      const narrativeAnalysis = await VisionEngine.analyzeNarrative(chapterContent);
 
-      // Step 2: Break chapter into scenes
+      // Step 2: Break chapter into scenes (Compositional logic)
       const scenes = await this.breakIntoScenes(narrativeAnalysis, chapterContent);
 
       // Step 3: For each scene, make directorial decisions
@@ -268,88 +290,19 @@ export class AIDirectorAgent {
   }
 
   /**
-   * Analyze narrative structure and emotional beats
-   */
-  private async analyzeNarrative(chapterContent: string): Promise<NarrativeAnalysis> {
-    const prompt = `Analyze this chapter for narrative structure, emotional beats, and key moments:
-
-${chapterContent.substring(0, 5000)}
-
-Provide a JSON response with:
-1. actStructure: array of acts with descriptions and key moments
-2. emotionalArc: array of emotional phases with intensity (0-10) and description
-3. keyVisualMoments: array of visually compelling moments
-4. characterInteractions: array of character interactions with type and description
-5. pacingRecommendations: string with pacing advice
-
-Return ONLY valid JSON, no markdown.`;
-
-    const params: InvokeParams = {
-      messages: [
-        {
-          role: 'user' as const,
-          content: prompt
-        }
-      ] as Message[],
-      maxTokens: 2000
-    };
-
-    const result: InvokeResult = await invokeLLM(params);
-    const text = typeof result.choices[0]?.message?.content === 'string' ? result.choices[0].message.content : '';
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      // Fallback structure if parsing fails
-      return {
-        actStructure: [
-          { act: 1, description: 'Setup', keyMoments: ['Introduction'] },
-          { act: 2, description: 'Confrontation', keyMoments: ['Conflict'] },
-          { act: 3, description: 'Resolution', keyMoments: ['Climax'] }
-        ],
-        emotionalArc: [
-          { phase: 'Exposition', intensity: 5, description: 'Setting the stage' },
-          { phase: 'Climax', intensity: 9, description: 'Peak tension' },
-          { phase: 'Resolution', intensity: 6, description: 'Denouement' }
-        ],
-        keyVisualMoments: ['Key moment 1', 'Key moment 2'],
-        characterInteractions: [],
-        pacingRecommendations: 'Maintain steady pacing'
-      };
-    }
-  }
-
-  /**
-   * Break chapter into individual scenes
+   * Break chapter into individual scenes (Delegated to Vision context)
    */
   private async breakIntoScenes(
     narrativeAnalysis: NarrativeAnalysis,
     chapterContent: string
   ): Promise<Scene[]> {
-    const prompt = `Break this chapter into individual scenes. Each scene should be a distinct location/time with specific characters and actions.
-
+    const prompt = `Break this chapter into individual scenes based on location/time.
 Narrative Analysis: ${JSON.stringify(narrativeAnalysis)}
-
-Chapter excerpt: ${chapterContent.substring(0, 3000)}
-
-For each scene, provide a JSON array with:
-- id: unique scene identifier
-- number: scene number
-- location: scene location
-- characters: array of character names
-- keyActions: array of key actions
-- emotionalTone: emotional tone of the scene
-- visualOpportunities: array of visual opportunities
-
-Return ONLY valid JSON array, no markdown.`;
+Excerpt: ${chapterContent.substring(0, 3000)}
+Return ONLY valid JSON array.`;
 
     const params: InvokeParams = {
-      messages: [
-        {
-          role: 'user' as const,
-          content: prompt
-        }
-      ] as Message[],
+      messages: [{ role: 'user', content: prompt }] as Message[],
       maxTokens: 3000
     };
 
@@ -359,23 +312,12 @@ Return ONLY valid JSON array, no markdown.`;
     try {
       return JSON.parse(text);
     } catch {
-      // Fallback: create a single scene
-      return [
-        {
-          id: 'scene-1',
-          number: 1,
-          location: 'Unknown Location',
-          characters: [],
-          keyActions: ['Scene action'],
-          emotionalTone: 'dramatic',
-          visualOpportunities: ['Visual opportunity']
-        }
-      ];
+      return [{ id: 'scene-1', number: 1, location: 'Unknown', characters: [], keyActions: ['Action'], emotionalTone: 'dramatic', visualOpportunities: [] }];
     }
   }
 
   /**
-   * Make directorial decision for a single scene
+   * Orchestrate directorial decisions for a single scene by composing specialized engines
    */
   private async makeDirectorialDecision(
     scene: Scene,
@@ -383,27 +325,29 @@ Return ONLY valid JSON array, no markdown.`;
     narrativeAnalysis: NarrativeAnalysis
   ): Promise<DirectorDecision> {
     try {
-      // Step 1: Director determines creative vision
-      const directorialVision = await this.determineDirectorialVision(
+      // 1. Creative Vision (Atomic Engine)
+      const directorialVision = await VisionEngine.determineDirectorialVision(
         scene,
-        narrativeAnalysis
+        this.genreProfile.genre,
+        this.genreProfile.conventions
       );
 
-      // Step 2: Generate camera trajectory
-      const cameraTrajectory = await this.generateCameraTrajectory(
+      // 2. Camera Physics (Atomic Engine)
+      const cameraTrajectory = await CameraEngine.generateTrajectory(
         scene,
-        directorialVision
+        directorialVision,
+        this.genreProfile
       );
 
-      // Step 3: Determine character blocking
-      const characterBlocking = await this.determineCharacterBlocking(
+      // 3. Spatial Blocking (Atomic Engine)
+      const characterBlocking = await BlockingEngine.determineBlocking(
         scene,
         cameraTrajectory,
         visualBible
       );
 
-      // Step 4: Generate lighting setup
-      const lighting = await this.generateLightingSetup(scene, directorialVision);
+      // 4. Lighting Strategy (Atomic Engine)
+      const lighting = await LightingEngine.generateSetup(scene, directorialVision);
 
       return {
         sceneId: scene.id,
@@ -416,202 +360,6 @@ Return ONLY valid JSON array, no markdown.`;
     } catch (error) {
       console.error(`Error making directorial decision for scene ${scene.id}:`, error);
       throw error;
-    }
-  }
-
-  /**
-   * Director determines creative vision for scene
-   */
-  private async determineDirectorialVision(
-    scene: Scene,
-    narrativeAnalysis: NarrativeAnalysis
-  ): Promise<DirectorialVision> {
-    const prompt = `As a film director, determine the creative vision for this scene:
-
-Scene: ${JSON.stringify(scene)}
-Genre: ${this.genreProfile.genre}
-Genre Conventions: ${JSON.stringify(this.genreProfile.conventions)}
-
-Provide a JSON response with:
-- emotionalTone: emotional tone
-- mood: visual mood
-- visualStyle: object with colorPalette (array of colors) and lightingMood
-- cameraApproach: camera approach description
-- keyVisualMoments: array of key visual moments to emphasize
-- pacingAndRhythm: pacing description
-- cinematicPrinciples: array of cinematic principles to apply
-
-Return ONLY valid JSON, no markdown.`;
-
-    const params: InvokeParams = {
-      messages: [
-        {
-          role: 'user' as const,
-          content: prompt
-        }
-      ] as Message[],
-      maxTokens: 1500
-    };
-
-    const result: InvokeResult = await invokeLLM(params);
-    const text = typeof result.choices[0]?.message?.content === 'string' ? result.choices[0].message.content : '';
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      // Fallback vision
-      return {
-        emotionalTone: scene.emotionalTone,
-        mood: 'dramatic',
-        visualStyle: {
-          colorPalette: ['#8B4513', '#D2B48C', '#2C1810'],
-          lightingMood: 'naturalistic'
-        },
-        cameraApproach: this.genreProfile.cameraStyle,
-        keyVisualMoments: scene.visualOpportunities,
-        pacingAndRhythm: 'steady',
-        cinematicPrinciples: ['Rule of thirds', 'Leading lines']
-      };
-    }
-  }
-
-  /**
-   * Generate camera trajectory based on scene and vision
-   */
-  private async generateCameraTrajectory(
-    scene: Scene,
-    directorialVision: DirectorialVision
-  ): Promise<CameraTrajectory> {
-    const genDoPParams: CameraTrajectoryParams = {
-      sceneDescription: scene.location,
-      narrativeContext: directorialVision.mood,
-      genre: this.genreProfile.genre,
-      directorialIntent: directorialVision.cameraApproach,
-      constraints: {
-        maxSpeed: this.genreProfile.cameraMaxSpeed,
-        minDistance: this.genreProfile.cameraMinDistance,
-        maxDistance: this.genreProfile.cameraMaxDistance,
-        allowedMovements: this.genreProfile.allowedMovements
-      }
-    };
-
-    return GenDoPIntegration.generateTrajectory(genDoPParams, scene, directorialVision);
-  }
-
-  /**
-   * Determine character blocking for scene
-   */
-  private async determineCharacterBlocking(
-    scene: Scene,
-    cameraTrajectory: CameraTrajectory,
-    visualBible: WorldBibleData
-  ): Promise<CharacterPosition[]> {
-    const prompt = `Determine character blocking for this scene:
-
-Scene: ${JSON.stringify(scene)}
-Characters in scene: ${scene.characters.join(', ')}
-
-For each character, provide a JSON array with:
-- characterId: character identifier
-- position: object with x, y, z coordinates
-- rotation: object with x, y, z, w quaternion values
-- animation: animation name (standing, walking, sitting, etc.)
-- startFrame: start frame number
-- endFrame: end frame number
-
-Ensure blocking is cinematically clear and supports camera framing.
-Return ONLY valid JSON array, no markdown.`;
-
-    const params: InvokeParams = {
-      messages: [
-        {
-          role: 'user' as const,
-          content: prompt
-        }
-      ] as Message[],
-      maxTokens: 2000
-    };
-
-    const result: InvokeResult = await invokeLLM(params);
-    const text = typeof result.choices[0]?.message?.content === 'string' ? result.choices[0].message.content : '';
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      // Fallback blocking
-      return scene.characters.map((charId, idx) => ({
-        characterId: charId,
-        position: { x: idx * 2, y: 0, z: 0 },
-        rotation: { x: 0, y: 0, z: 0, w: 1 },
-        animation: 'standing',
-        startFrame: 0,
-        endFrame: 120
-      }));
-    }
-  }
-
-  /**
-   * Generate lighting setup for scene
-   */
-  private async generateLightingSetup(
-    scene: Scene,
-    directorialVision: DirectorialVision
-  ): Promise<LightingSetup> {
-    const prompt = `Generate a lighting setup for this scene:
-
-Scene: ${JSON.stringify(scene)}
-Directorial Vision: ${JSON.stringify(directorialVision)}
-Lighting Mood: ${directorialVision.visualStyle.lightingMood}
-
-Provide a JSON response with:
-- keyLight: object with position (x, y, z), color (hex), intensity (0-1), temperature (K)
-- fillLight: similar structure
-- backLight: similar structure
-- ambientLight: object with color (hex) and intensity (0-1)
-
-Return ONLY valid JSON, no markdown.`;
-
-    const params: InvokeParams = {
-      messages: [
-        {
-          role: 'user' as const,
-          content: prompt
-        }
-      ] as Message[],
-      maxTokens: 1000
-    };
-
-    const result: InvokeResult = await invokeLLM(params);
-    const text = typeof result.choices[0]?.message?.content === 'string' ? result.choices[0].message.content : '';
-
-    try {
-      return JSON.parse(text);
-    } catch {
-      // Fallback lighting
-      return {
-        keyLight: {
-          position: { x: 3, y: 2, z: 1 },
-          color: '#FFFFFF',
-          intensity: 0.8,
-          temperature: 5600
-        },
-        fillLight: {
-          position: { x: -2, y: 1, z: 1 },
-          color: '#E8D4C0',
-          intensity: 0.4,
-          temperature: 3200
-        },
-        backLight: {
-          position: { x: 0, y: 2, z: -3 },
-          color: '#FFFFFF',
-          intensity: 0.3,
-          temperature: 5600
-        },
-        ambientLight: {
-          color: '#4A4A4A',
-          intensity: 0.2
-        }
-      };
     }
   }
 }

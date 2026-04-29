@@ -1,0 +1,32 @@
+# NVIDIA Enterprise VBT Specification
+# Project: Cosmos Physical Authority Flywheel
+
+# 1. Models Definition
+models:
+  student: "nvidia/cosmos-predict-2.5"
+  verifier: "nvidia/cosmos-reason-2"
+  physics_engine: "nvidia/physics-nemo-v1"
+
+# 2. Alignment Strategy (The 'Standard')
+alignment:
+  method: "VBT" # Verifier-Based Training
+  algorithm: "DPO" # Direct Preference Optimization
+  
+  # The Verifier (Cosmos-Reason) provides the reward signal
+  reward_config:
+    verifier_model: ${models.verifier}
+    physics_constraints: 
+      - gravity_consistency
+      - object_permanence
+      - collision_penalty
+    
+# 3. Data Factory (Standard Ingestion)
+dataset:
+  source: "s3://nvidia-cosmos-datasets/physical-grounding-v1"
+  format: "nemo_vbt_jsonl"
+  
+# 4. Infrastructure (Scaling to Cluster)
+infrastructure:
+  framework: "NeMo Framework"
+  orchestrator: "NVIDIA Base Command Manager"
+  precision: "fp8" # 2026 standard for H200/B200 clusters

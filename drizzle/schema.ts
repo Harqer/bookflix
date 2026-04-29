@@ -10,11 +10,13 @@ import {
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
+import { type InferSelectModel, type InferInsertModel } from "drizzle-orm";
 
 /**
  * Enums for Type Safety
  */
 export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const subscriptionTierEnum = pgEnum("subscription_tier", ["free", "pro", "enterprise"]);
 export const productionStyleEnum = pgEnum("production_style", ["cinematic", "animated", "documentary"]);
 export const productionStatusEnum = pgEnum("production_status", [
   "pending",
@@ -37,6 +39,8 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }),
   imageUrl: text("imageUrl"),
   role: roleEnum("role").default("user").notNull(),
+  tier: subscriptionTierEnum("tier").default("free").notNull(),
+  credits: integer("credits").default(100).notNull(),
   organizationId: varchar("organizationId", { length: 255 }), // Enterprise Org Support
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
@@ -59,7 +63,27 @@ export const books = pgTable("books", {
   chapterCount: integer("chapterCount").default(0),
   productionStyle: productionStyleEnum("productionStyle").default("cinematic"),
   status: productionStatusEnum("status").default("pending").notNull(),
+  tone: varchar("tone", { length: 100 }).default("dramatic"),
   errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+/**
+ * Chapters Table
+ * Stores individual chapter text and status for iterative processing.
+ */
+export const chapters = pgTable("chapters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  bookId: uuid("bookId").notNull().references(() => books.id),
+  chapterNumber: integer("chapterNumber").notNull(),
+  title: varchar("title", { length: 500 }),
+  rawContent: text("rawContent").notNull(),
+  screenplay: text("screenplay"),
+  summary: text("summary"),
+  thumbnailUrl: text("thumbnailUrl"),
+  wordCount: integer("wordCount").default(0),
+  status: productionStatusEnum("status").default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
@@ -120,12 +144,14 @@ export const processingJobs = pgTable("processing_jobs", {
 export const videoScenes = pgTable("video_scenes", {
   id: uuid("id").primaryKey().defaultRandom(),
   bookId: uuid("bookId").notNull().references(() => books.id),
+  chapterId: uuid("chapterId").notNull().references(() => chapters.id),
   sceneNumber: integer("sceneNumber").notNull(),
   slugline: varchar("slugline", { length: 500 }),
   actionLines: text("actionLines"),
   dialogue: text("dialogue"),
   visualPrompt: text("visualPrompt"),
   videoUrl: text("videoUrl"),
+  keyframeImageUrl: text("keyframeImageUrl"),
   status: text("status").default("pending"), // 'pending', 'reviewing', 'complete'
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -149,3 +175,20 @@ export const productionFeedback = pgTable("production_feedback", {
   promptUsed: text("promptUsed"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ─── Type Exports ─────────────────────────────────────────────────────────────
+
+export type User = InferSelectModel<typeof users>;
+export type NewUser = InferInsertModel<typeof users>;
+
+export type Book = InferSelectModel<typeof books>;
+export type NewBook = InferInsertModel<typeof books>;
+
+export type Chapter = InferSelectModel<typeof chapters>;
+export type NewChapter = InferInsertModel<typeof chapters>;
+
+export type WorldBible = InferSelectModel<typeof worldBibles>;
+export type NewWorldBible = InferInsertModel<typeof worldBibles>;
+
+export type ProcessingJob = InferSelectModel<typeof processingJobs>;
+export type NewProcessingJob = InferInsertModel<typeof processingJobs>;
