@@ -1,13 +1,13 @@
 # inference
-torch==2.7.1
-torchvision==0.22.1
-transformers==4.49.0
-diffusers[torch]==0.33.1
+torch>=2.4.0
+torchvision>=0.19.0
+transformers>=4.45.0
+diffusers[torch]>=0.30.0
 torchmetrics
 einops
-hydra-core==1.3.2
-hydra-colorlog==1.2.0
-hydra-optuna-sweeper==1.2.0
+hydra-core>=1.3.2
+hydra-colorlog>=1.2.0
+hydra-optuna-sweeper>=1.2.0
 ipdb
 
 # preprocess
@@ -15,7 +15,7 @@ fire
 h5py
 kornia
 opencv-python
-ipython==8.20.0
+ipython>=8.24.0
 timm
 scipy
 json_tricks
@@ -24,6 +24,14 @@ json_tricks
 # download dataset
 huggingface_hub
 datasets
-pyarrow
-pandas
+pyarrow>=17.0.0
+pandas>=2.2.0
 pycolmap
+
+# Security Patches
+starlette>=0.40.0
+httpx>=0.27.0
+cryptography>=43.0.0
+python-dotenv>=1.0.1
+langsmith>=0.1.121
+mcp>=1.0.0
