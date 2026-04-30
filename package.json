@@ -69,7 +69,11 @@
     ],
     "overrides": {
       "uuid": ">=14.0.0",
-      "postcss": ">=8.5.10"
+      "postcss": ">=8.5.10",
+      "@babel/core": "^7.26.0",
+      "@babel/plugin-transform-react-jsx": "^7.25.0",
+      "@babel/preset-env": "^7.26.0",
+      "@babel/runtime": "^7.26.0"
     }
   }
 }
