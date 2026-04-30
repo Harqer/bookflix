@@ -1,48 +1,28 @@
 diff --git a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
 --- a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
 +++ b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
-@@ -88,7 +88,19 @@
-   /**
-    * See `NativeModeChangeEvent`.
-    */
+@@ -85,10 +85,6 @@
+ type VirtualViewNativeProps = Readonly<{
+   ...ViewProps,
+ 
+-  /**
+-   * See `NativeModeChangeEvent`.
+-   */
 -  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
-+  onModeChange?: ?DirectEventHandler<
-+    Readonly<{
-+      mode: Int32,
-+      targetRectX: Double,
-+      targetRectY: Double,
-+      targetRectWidth: Double,
-+      targetRectHeight: Double,
-+      thresholdRectX: Double,
-+      thresholdRectY: Double,
-+      thresholdRectWidth: Double,
-+      thresholdRectHeight: Double,
-+    }>
-+  >,
  }>;
  
  // TODO: Rename to eliminate "Experimental" suffix in the name.
 diff --git a/src/private/components/virtualview/VirtualViewNativeComponent.js b/src/private/components/virtualview/VirtualViewNativeComponent.js
 --- a/src/private/components/virtualview/VirtualViewNativeComponent.js
 +++ b/src/private/components/virtualview/VirtualViewNativeComponent.js
-@@ -88,7 +88,19 @@
-   /**
-    * See `NativeModeChangeEvent`.
-    */
+@@ -85,10 +85,6 @@
+ type VirtualViewNativeProps = Readonly<{
+   ...ViewProps,
+ 
+-  /**
+-   * See `NativeModeChangeEvent`.
+-   */
 -  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
-+  onModeChange?: ?DirectEventHandler<
-+    Readonly<{
-+      mode: Int32,
-+      targetRectX: Double,
-+      targetRectY: Double,
-+      targetRectWidth: Double,
-+      targetRectHeight: Double,
-+      thresholdRectX: Double,
-+      thresholdRectY: Double,
-+      thresholdRectWidth: Double,
-+      thresholdRectHeight: Double,
-+    }>
-+  >,
  }>;
  
  export default codegenNativeComponent<VirtualViewNativeProps>('VirtualView', {
