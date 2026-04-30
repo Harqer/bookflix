@@ -1,0 +1,24 @@
+diff --git a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
+--- a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
++++ b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
+@@ -88,7 +88,7 @@
+   /**
+    * See `NativeModeChangeEvent`.
+    */
+-  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
++  onModeChange?: DirectEventHandler<NativeModeChangeEvent>,
+ }>;
+ 
+ // TODO: Rename to eliminate "Experimental" suffix in the name.
+diff --git a/src/private/components/virtualview/VirtualViewNativeComponent.js b/src/private/components/virtualview/VirtualViewNativeComponent.js
+--- a/src/private/components/virtualview/VirtualViewNativeComponent.js
++++ b/src/private/components/virtualview/VirtualViewNativeComponent.js
+@@ -88,7 +88,7 @@
+   /**
+    * See `NativeModeChangeEvent`.
+    */
+-  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
++  onModeChange?: DirectEventHandler<NativeModeChangeEvent>,
+ }>;
+ 
+ export default codegenNativeComponent<VirtualViewNativeProps>('VirtualView', {
