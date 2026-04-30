@@ -6,6 +6,7 @@ module.exports = function (api) {
       "nativewind/babel",
     ],
     plugins: [
+      "@babel/plugin-transform-flow-strip-types",
       "react-native-reanimated/plugin",
     ],
   };
