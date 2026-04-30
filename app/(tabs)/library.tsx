@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
 
 function StatusBadge({ status }: { status: string }) {
@@ -100,14 +99,10 @@ export default function LibraryScreen() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "complete">("all");
 
-  const { data: books, isLoading, refetch } = trpc.books.list.useQuery(undefined, {
-    enabled: !!user,
-    refetchInterval: 8000,
-  });
-
-  const deleteBook = trpc.books.delete.useMutation({
-    onSuccess: () => refetch(),
-  });
+  // TODO: Replace with Convex queries
+  const books: any[] = [];
+  const isLoading = false;
+  const deleteBook = { mutate: ({ id }: { id: string }) => {} };
 
   const filtered = (books || []).filter((b) => {
     const matchSearch = !search || b.title.toLowerCase().includes(search.toLowerCase()) || (b.author || "").toLowerCase().includes(search.toLowerCase());
