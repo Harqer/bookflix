@@ -1,9 +1,8 @@
 import { ScrollView, Text, View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ScreenContainer } from "@/components/screen-container";
-import { useColors } from "@/hooks/use-colors";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 type ViewMode = "screenplay" | "scenes";
 
@@ -11,12 +10,11 @@ export default function ChapterScreen() {
   const colors = useColors();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const chapterId = parseInt(id || "0");
+  const chapterId = id as string;
   const [viewMode, setViewMode] = useState<ViewMode>("screenplay");
 
-  // TODO: Migrate to Convex api.chapters
-  const data: any = null;
-  const isLoading = false;
+  const data = useQuery(api.studio.getChapterById, chapterId ? { id: chapterId as any } : "skip");
+  const isLoading = data === undefined;
 
   if (isLoading) {
     return (

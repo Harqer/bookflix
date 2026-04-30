@@ -5,6 +5,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 type TabKey = "characters" | "locations" | "timeline";
 
@@ -15,9 +17,8 @@ export default function WorldBibleScreen() {
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("characters");
 
-  // TODO: Migrate to Convex api.worldBible
-  const books: any[] = [];
-  const worldBible: any = null;
+  const books = useQuery(api.studio.listBooks) || [];
+  const worldBible = useQuery(api.studio.getWorldBible, selectedBookId ? { bookId: selectedBookId as any } : "skip");
 
   const completedBooks = books?.filter((b) => b.status === "complete" || (b.chapterCount ?? 0) > 0) || [];
 
@@ -55,22 +56,22 @@ export default function WorldBibleScreen() {
         {completedBooks.length > 0 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 0 }}>
             <View style={{ flexDirection: "row", gap: 8 }}>
-              {completedBooks.map((book) => (
+               {completedBooks.map((book) => (
                 <TouchableOpacity
-                  key={book.id}
-                  onPress={() => setSelectedBookId(book.id)}
+                  key={book._id}
+                  onPress={() => setSelectedBookId(book._id as any)}
                   style={{
                     paddingHorizontal: 14,
                     paddingVertical: 7,
                     borderRadius: 20,
-                    backgroundColor: selectedBookId === book.id ? colors.primary : colors.background,
+                    backgroundColor: selectedBookId === (book._id as any) ? colors.primary : colors.background,
                     borderWidth: 1,
-                    borderColor: selectedBookId === book.id ? colors.primary : colors.border,
+                    borderColor: selectedBookId === (book._id as any) ? colors.primary : colors.border,
                   }}
                 >
                   <Text
                     style={{
-                      color: selectedBookId === book.id ? "#FDF6EE" : colors.muted,
+                      color: selectedBookId === (book._id as any) ? "#FDF6EE" : colors.muted,
                       fontSize: 13,
                       fontWeight: "600",
                     }}

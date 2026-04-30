@@ -83,9 +83,9 @@ export const orchestrateChapterProduction = internalAction({
   handler: async (ctx: ActionCtx, args) => {
     return await withSentry("orchestrateChapterProduction", async () => {
       const traceId = args.chapterId;
-      const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
+      const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY!;
 
-      await logger.info("🎬 Director: Starting Production Flow", traceId);
+      await logger.info("Director: Orchestrating Chapter Production", traceId);
 
       // 1. Semantic Context Retrieval (Vector Search)
       const embedding = await generateEmbedding(NVIDIA_API_KEY || "", args.screenplay.slice(0, 500));

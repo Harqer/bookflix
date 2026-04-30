@@ -12,22 +12,43 @@ http.route({
   path: "/nvidia-callback",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
-    // 🛡️ 2026 Security: Validate that this comes from a trusted NVIDIA cluster
-    // (Implementation of signature check would go here)
+    const signature = request.headers.get("X-Worker-Secret");
+    if (signature !== process.env.EXTERNAL_WORKER_SECRET) {
+      return new Response("Unauthorized", { status: 401 });
+    }
 
-    const body = await request.json() as { jobId: any; storageId?: string; status?: string };
-    const { jobId, storageId, status } = body;
+    const body = await request.json() as { 
+      jobId: any; 
+      sceneId?: any; 
+      storageId?: string; 
+      status?: string;
+      progress?: number;
+    };
+    
+    const { jobId, sceneId, storageId, status, progress } = body;
 
-    // 🌊 Atomic State Update
+    // 🌊 Atomic State Update for Job
     await ctx.runMutation(internal.studio.updateJobStatusInternal, {
       jobId,
       status: status || "complete",
-      progress: 100,
+      progress: progress ?? 100,
     });
 
-    return new Response(null, {
+    // 🎬 Link Asset to Scene if provided
+    if (sceneId && storageId) {
+      await ctx.runMutation(internal.studio.updateSceneInternal, {
+        sceneId,
+        storageId: storageId as any,
+        status: "complete",
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: { 
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+      },
     });
   }),
 });

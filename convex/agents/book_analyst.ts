@@ -83,10 +83,8 @@ export const analyzeBook = action({
   handler: async (ctx: ActionCtx, args) => {
     return await withSentry("analyzeBook", async () => {
       const traceId = args.bookId;
-      const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-      const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
-
-      if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not found in Cloud Secrets");
+      const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+      const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY!;
 
       // 1. Ingest
       const rawText = await ctx.runQuery(internal.studio.getRawTextInternal, { bookId: args.bookId });

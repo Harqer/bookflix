@@ -1,7 +1,11 @@
-import { ScrollView, View, Text, Pressable } from 'react-native';
+import { ScrollView, View, Text, Pressable, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { useColors } from '@/hooks/use-colors';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 
 interface CameraControlState {
   zoomIntensity: number;
@@ -148,7 +152,43 @@ function CameraSlider({
 
 export default function CameraControlScreen() {
   const colors = useColors();
+  const { sceneId } = useLocalSearchParams<{ sceneId: string }>();
+  
   const [camera, setCamera] = useState<CameraControlState>(DEFAULT_CAMERA_STATE);
+  const [isApplying, setIsApplying] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+
+  const updateParams = useMutation(api.studio.updateCameraParams);
+  const triggerPreview = useMutation(api.studio.previewCameraMovement);
+
+  const handlePreview = async () => {
+    if (!sceneId) {
+      Alert.alert("Select a Scene", "Please select a scene to preview camera movement.");
+      return;
+    }
+    setIsPreviewing(true);
+    try {
+      await triggerPreview({ sceneId: sceneId as any, cameraParams: camera });
+      Alert.alert("Preview Enqueued", "A low-resolution camera preview is being generated in the cloud.");
+    } catch (err: any) {
+      Alert.alert("Preview Failed", err.message);
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
+  const handleApply = async () => {
+    if (!sceneId) return;
+    setIsApplying(true);
+    try {
+      await updateParams({ sceneId: sceneId as any, cameraParams: camera });
+      Alert.alert("Success", "Cinematography parameters updated for this scene.");
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    } finally {
+      setIsApplying(false);
+    }
+  };
   // Camera preview mutation (optional for future implementation)
 
   const handlePresetSelect = (preset: any) => {
@@ -157,19 +197,66 @@ export default function CameraControlScreen() {
   };
 
   return (
-    <ScreenContainer className="bg-background">
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-      >
+    <ScreenContainer>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Header */}
+        <View className="p-6 gap-2 bg-surface border-b border-border">
+          <Text className="text-2xl font-bold text-foreground">Cinematography</Text>
+          <Text className="text-sm text-muted">Real-time edge-native camera control</Text>
+          
+          {sceneId ? (
+            <View className="mt-2 flex-row items-center gap-2 bg-primary/10 self-start px-3 py-1 rounded-full">
+              <IconSymbol name="video.fill" size={14} color={colors.primary} />
+              <Text className="text-xs font-semibold text-primary">Targeting Scene ID: {sceneId.slice(-6)}</Text>
+            </View>
+          ) : (
+            <View className="mt-2 flex-row items-center gap-2 bg-warning/10 self-start px-3 py-1 rounded-full">
+              <IconSymbol name="exclamationmark.triangle.fill" size={14} color={colors.warning} />
+              <Text className="text-xs font-semibold text-warning">No Scene Selected (Preview Only)</Text>
+            </View>
+          )}
+        </View>
+
         <View className="p-6 gap-6">
-          {/* Header */}
-          <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">Camera Control</Text>
-            <Text className="text-sm text-muted">
-              Adjust cinematography in real-time
-            </Text>
+          {/* Action Buttons */}
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={handlePreview}
+              disabled={isPreviewing}
+              style={{
+                flex: 1,
+                backgroundColor: colors.surface,
+                paddingVertical: 14,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: colors.border,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              {isPreviewing ? <ActivityIndicator size="small" color={colors.primary} /> : <IconSymbol name="play.fill" size={16} color={colors.primary} />}
+              <Text style={{ color: colors.primary, fontWeight: '700' }}>Cloud Preview</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleApply}
+              disabled={isApplying || !sceneId}
+              style={{
+                flex: 1,
+                backgroundColor: !sceneId ? colors.muted : colors.primary,
+                paddingVertical: 14,
+                borderRadius: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              {isApplying ? <ActivityIndicator size="small" color="white" /> : <IconSymbol name="checkmark.circle.fill" size={16} color="white" />}
+              <Text style={{ color: 'white', fontWeight: '700' }}>Apply Params</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Presets */}

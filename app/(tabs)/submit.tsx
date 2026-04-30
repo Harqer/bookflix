@@ -24,90 +24,11 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/hooks/use-auth";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-// ─── Step Indicator ───────────────────────────────────────────────────────────
-
-function StepIndicator({ current, total }: { current: number; total: number }) {
-  const colors = useColors();
-  
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-      {Array.from({ length: total }, (_, i) => {
-        const isActive = i === current;
-        const isPast = i < current;
-        
-        return (
-          <Animated.View 
-            key={i} 
-            layout={Animated.Layout.springify()}
-            style={{
-              width: isActive ? 32 : 12,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: isActive ? colors.primary : isPast ? colors.primary + "66" : colors.border,
-            }}
-          />
-        );
-      })}
-    </View>
-  );
-}
-
-// ─── Form Field ───────────────────────────────────────────────────────────────
-
-function FormField({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  multiline,
-  maxLength,
-  keyboardType,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  multiline?: boolean;
-  maxLength?: number;
-  keyboardType?: "default" | "email-address";
-}) {
-  const colors = useColors();
-  return (
-    <Animated.View entering={FadeIn.duration(400)} style={{ marginBottom: 16 }}>
-      <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: "600", marginBottom: 6 }}>
-        {label}
-      </Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.muted}
-        multiline={multiline}
-        maxLength={maxLength}
-        keyboardType={keyboardType}
-        returnKeyType={multiline ? "default" : "done"}
-        style={{
-          backgroundColor: colors.surface,
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: 12,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-          color: colors.foreground,
-          fontSize: 15,
-          minHeight: multiline ? 160 : undefined,
-          textAlignVertical: multiline ? "top" : "center",
-        }}
-      />
-      {maxLength && (
-        <Text style={{ color: colors.muted, fontSize: 11, textAlign: "right", marginTop: 4 }}>
-          {value.length.toLocaleString()} / {maxLength.toLocaleString()}
-        </Text>
-      )}
-    </Animated.View>
-  );
-}
+import { StepIndicator } from "@/components/ui/step-indicator";
+import { FormField } from "@/components/ui/form-field";
 
 // ─── Submit Screen ────────────────────────────────────────────────────────────
 
@@ -121,7 +42,7 @@ const STYLES = [
 export default function SubmitScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { user, orgId } = useAuth();
+  const { user, organization } = useAuth();
 
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
@@ -130,28 +51,37 @@ export default function SubmitScreen() {
   const [rawText, setRawText] = useState("");
   const [productionStyle, setProductionStyle] = useState<"cinematic" | "animated" | "documentary">("cinematic");
   const [tone, setTone] = useState("dramatic");
+  const submitMutation = useMutation(api.studio.submitBook);
+  const [isPending, setIsPending] = useState(false);
 
-  // TODO: Replace with Convex mutation
   const submitBook = {
-    isPending: false,
-    mutate: (data: any) => {
-      Alert.alert(
-        "Production Started!",
-        `"${title}" has been submitted. The AI pipeline is now analyzing your book.`,
-        [
-          {
-            text: "Track Progress",
-            onPress: () => router.push(`/book/placeholder_id` as any),
-          },
-        ]
-      );
-      setStep(0);
-      setTitle("");
-      setAuthor("");
-      setGenre("Drama");
-      setRawText("");
-      setProductionStyle("cinematic");
-      setTone("dramatic");
+    isPending,
+    mutate: async (data: any) => {
+      setIsPending(true);
+      try {
+        const result = await submitMutation(data);
+        Alert.alert(
+          "Production Started!",
+          `"${title}" has been submitted. The AI pipeline is now analyzing your book.`,
+          [
+            {
+              text: "Track Progress",
+              onPress: () => router.push(`/book/${result.bookId}` as any),
+            },
+          ]
+        );
+        setStep(0);
+        setTitle("");
+        setAuthor("");
+        setGenre("Drama");
+        setRawText("");
+        setProductionStyle("cinematic");
+        setTone("dramatic");
+      } catch (err: any) {
+        Alert.alert("Submission Failed", err.message);
+      } finally {
+        setIsPending(false);
+      }
     }
   };
 
@@ -173,8 +103,8 @@ export default function SubmitScreen() {
       rawText, 
       productionStyle, 
       tone,
-      // Pass orgId to ensure submission is associated with the active studio
-      organizationId: orgId || undefined 
+      // Pass organizationId to ensure submission is associated with the active studio
+      organizationId: organization?.id || undefined 
     });
   };
 
@@ -399,7 +329,7 @@ export default function SubmitScreen() {
                   Production Summary
                 </Text>
                 {[
-                  { label: "Studio", value: orgId ? "Active Studio" : "Personal" },
+                  { label: "Studio", value: organization ? "Active Studio" : "Personal" },
                   { label: "Title", value: title },
                   { label: "Author", value: author || "Unknown" },
                   { label: "Genre", value: genre },

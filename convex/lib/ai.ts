@@ -6,11 +6,6 @@ import { logger } from "./observability";
  */
 
 export async function generateEmbedding(apiKey: string, text: string): Promise<number[]> {
-  if (!apiKey) {
-    await logger.warn("⚠️ AI: No NVIDIA_API_KEY found, falling back to identity vector");
-    return new Array(1024).fill(0.1); 
-  }
-
   // 🚀 2026: NVIDIA NIM NVIDIA-Retrieval-QA-Embedding-Llama-3-8B
   const url = "https://integrate.api.nvidia.com/v1/embeddings";
   

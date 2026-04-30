@@ -120,6 +120,20 @@ export const updateChapterInternal = internalMutation({
   },
 });
 
+export const updateSceneInternal = internalMutation({
+  args: {
+    sceneId: v.id("videoScenes"),
+    storageId: v.optional(v.id("_storage")),
+    status: v.string(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    await ctx.db.patch(args.sceneId, {
+      status: args.status,
+      ...(args.storageId && { storageId: args.storageId }),
+    });
+  },
+});
+
 export const getRawTextInternal = query({
   args: { bookId: v.id("books") },
   handler: async (ctx: QueryCtx, args: { bookId: Id<"books"> }) => {
@@ -319,6 +333,54 @@ export const createRenderJobInternal = internalMutation({
   },
 });
 
+export const updateCameraParams = mutation({
+  args: {
+    sceneId: v.id("videoScenes"),
+    cameraParams: v.any(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    
+    await ctx.db.patch(args.sceneId, {
+      cameraParams: args.cameraParams,
+    });
+  },
+});
+
+export const previewCameraMovement = mutation({
+  args: {
+    sceneId: v.id("videoScenes"),
+    cameraParams: v.any(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    
+    const scene = await ctx.db.get(args.sceneId);
+    if (!scene) throw new Error("Scene not found");
+    
+    const chapter = await ctx.db.get(scene.chapterId);
+    if (!chapter) throw new Error("Chapter not found");
+    
+    // Push a preview job to the serverless queue
+    return await ctx.db.insert("render_jobs", {
+      userId: identity.subject,
+      bookId: chapter.bookId,
+      chapterId: scene.chapterId,
+      type: "preview",
+      config: {
+        sceneId: args.sceneId,
+        cameraParams: args.cameraParams,
+      },
+      status: "pending",
+      progress: 0,
+      cost: 0,
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const getProductionStats = query({
   args: {},
   handler: async (ctx: QueryCtx) => {
@@ -346,5 +408,38 @@ export const getProductionStats = query({
       totalCost,
       avgConsistencyScore: 0.94, // Realistically high for Gemini 1.5 Pro
     };
+  },
+});
+
+export const deleteBook = mutation({
+  args: { id: v.id("books") },
+  handler: async (ctx: MutationCtx, args: { id: Id<"books"> }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    const book = await ctx.db.get(args.id);
+    if (!book || book.userId !== identity.subject) {
+      throw new Error("Unauthorized or book not found");
+    }
+
+    // Cascade delete chapters and scenes
+    const chapters = await ctx.db
+      .query("chapters")
+      .withIndex("by_bookId", (q) => q.eq("bookId", args.id))
+      .collect();
+
+    for (const ch of chapters) {
+      const scenes = await ctx.db
+        .query("videoScenes")
+        .withIndex("by_chapterId", (q) => q.eq("chapterId", ch._id))
+        .collect();
+      
+      for (const scene of scenes) {
+        await ctx.db.delete(scene._id);
+      }
+      await ctx.db.delete(ch._id);
+    }
+
+    await ctx.db.delete(args.id);
   },
 });

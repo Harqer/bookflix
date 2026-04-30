@@ -65,6 +65,7 @@ export default defineSchema({
     sceneNumber: v.number(),
     slugline: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")), // Native Convex File Storage
+    cameraParams: v.optional(v.any()), // JSON representation of CameraControlState
     status: v.string(), // pending, complete
   }).index("by_chapterId", ["chapterId"]),
 
@@ -72,6 +73,7 @@ export default defineSchema({
     userId: v.string(),
     bookId: v.id("books"),
     chapterId: v.optional(v.id("chapters")),
+    sceneId: v.optional(v.id("videoScenes")),
     type: v.optional(v.string()), // e.g., "vision", "lighting", "consistency"
     config: v.optional(v.any()), // The brief or task payload
     status: v.string(), // "pending", "processing", "completed", "failed"

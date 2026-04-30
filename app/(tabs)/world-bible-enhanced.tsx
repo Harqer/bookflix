@@ -15,6 +15,8 @@ import { useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface ConsistencyScore {
   characterAppearance: number;
@@ -48,50 +50,36 @@ interface TimelineEvent {
   timestamp: string;
   significance: string;
   verified: boolean;
-}
-
 export default function WorldBibleEnhanced() {
   const colors = useColors();
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
   const [activeTab, setActiveTab] = useState<"characters" | "locations" | "timeline" | "themes">(
     "characters"
   );
-  const [consistencyScores, setConsistencyScores] = useState<ConsistencyScore>({
-    characterAppearance: 0.95,
-    characterPersonality: 0.92,
-    locationVisuals: 0.88,
-    locationMood: 0.90,
-    timelineAccuracy: 0.98,
-    themeCoherence: 0.85,
-    overall: 0.91,
-  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const bookIdNum = bookId ? parseInt(bookId) : 0;
   
-  // TODO: Migrate to Convex api.worldBible
-  const worldBibleQuery = { data: null };
+  const book = useQuery(api.studio.getBook, bookId ? { id: bookId as any } : "skip");
+  const data = useQuery(api.studio.getWorldBible, bookId ? { bookId: bookId as any } : "skip");
+  const analyzeMutation = useMutation(api.studio.triggerConsistencyCheck);
+  const worldBibleQuery = { data };
+  
+  const consistencyScores = book?.consistencyScores || {
+    characterAppearance: 0,
+    characterPersonality: 0,
+    locationVisuals: 0,
+    locationMood: 0,
+    timelineAccuracy: 0,
+    themeCoherence: 0,
+    overall: 0,
+  };
 
-  // Simulate consistency analysis
   const handleAnalyzeConsistency = async () => {
     setIsAnalyzing(true);
     try {
-      // In production: Call VLM consistency checker
-      // await trpc.worldBible.analyzeConsistency.mutate({ bookId: bookIdNum });
-      
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update scores
-      setConsistencyScores({
-        characterAppearance: 0.93 + Math.random() * 0.05,
-        characterPersonality: 0.90 + Math.random() * 0.05,
-        locationVisuals: 0.87 + Math.random() * 0.05,
-        locationMood: 0.89 + Math.random() * 0.05,
-        timelineAccuracy: 0.97 + Math.random() * 0.02,
-        themeCoherence: 0.84 + Math.random() * 0.05,
-        overall: 0.90 + Math.random() * 0.05,
-      });
+      await analyzeMutation({ bookId: bookId as any });
+      // The worker will update the DB, which will reactively update the UI
     } finally {
       setIsAnalyzing(false);
     }
