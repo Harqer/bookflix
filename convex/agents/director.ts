@@ -43,39 +43,28 @@ function interpretCinematography(dna: AtmosphericDNA) {
   return { camera, lighting };
 }
 
-async function dispatchToVisionMCP(chapterId: Id<"chapters">, brief: ReturnType<typeof interpretCinematography>) {
-  const VISION_MCP_URL = process.env.UNREAL_MCP_URL;
-  if (!VISION_MCP_URL) throw new Error("UNREAL_MCP_URL not configured");
-
-  await logger.info("🎥 Dispatching Spatial Brief...", chapterId, brief);
+async function dispatchToVisionMCP(ctx: ActionCtx, chapterId: Id<"chapters">, bookId: Id<"books">, brief: ReturnType<typeof interpretCinematography>) {
+  await logger.info("🎥 Queueing Vision Render Job...", chapterId, brief);
   
-  // 🚀 Active Webhook: Dispatching to Unreal Engine MCP
-  await fetch(VISION_MCP_URL, { 
-    method: "POST", 
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      chapterId, 
-      config: brief.camera,
-      timestamp: Date.now()
-    }) 
+  // 🚀 Serverless Queueing: Push to render_jobs queue instead of point-to-point HTTP.
+  // Any available GPU cluster can pull this job, process it, and write back.
+  await ctx.runMutation(internal.studio.createRenderJobInternal, {
+    chapterId,
+    bookId,
+    type: "vision",
+    config: brief.camera,
   });
 }
 
-async function dispatchToLightingMCP(chapterId: Id<"chapters">, brief: ReturnType<typeof interpretCinematography>) {
-  const LIGHTING_MCP_URL = process.env.NUKE_MCP_URL;
-  if (!LIGHTING_MCP_URL) throw new Error("NUKE_MCP_URL not configured");
-
-  await logger.info("💡 Dispatching Lighting Brief...", chapterId, brief);
+async function dispatchToLightingMCP(ctx: ActionCtx, chapterId: Id<"chapters">, bookId: Id<"books">, brief: ReturnType<typeof interpretCinematography>) {
+  await logger.info("💡 Queueing Lighting Render Job...", chapterId, brief);
   
-  // 🚀 Active Webhook: Dispatching to Nuke Lighting MCP
-  await fetch(LIGHTING_MCP_URL, { 
-    method: "POST", 
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      chapterId, 
-      config: brief.lighting,
-      timestamp: Date.now()
-    }) 
+  // 🚀 Serverless Queueing: Push to render_jobs queue
+  await ctx.runMutation(internal.studio.createRenderJobInternal, {
+    chapterId,
+    bookId,
+    type: "lighting",
+    config: brief.lighting,
   });
 }
 
@@ -112,10 +101,10 @@ export const orchestrateChapterProduction = internalAction({
       const brief = interpretCinematography(args.dna);
       await logger.info("🧠 Cinematic Brief Generated", traceId, brief);
 
-      // 3. Departmental Dispatch (Parallelized for Scale)
+      // 3. Departmental Dispatch (Serverless Queueing for Scale)
       await Promise.all([
-        dispatchToVisionMCP(args.chapterId, brief),
-        dispatchToLightingMCP(args.chapterId, brief)
+        dispatchToVisionMCP(ctx, args.chapterId, args.bookId, brief),
+        dispatchToLightingMCP(ctx, args.chapterId, args.bookId, brief)
       ]);
 
       // 4. State Transition

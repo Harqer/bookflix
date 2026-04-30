@@ -34,6 +34,15 @@ export default defineSchema({
     preferredLlm: v.optional(v.union(v.literal("cloud"), v.literal("personal"))),
     backgroundTrainingEnabled: v.optional(v.boolean()),
     atmosphericDNA: v.optional(v.any()), // Extracted by Scout, used by Director
+    consistencyScores: v.optional(v.object({
+      characterAppearance: v.number(),
+      characterPersonality: v.number(),
+      locationVisuals: v.number(),
+      locationMood: v.number(),
+      timelineAccuracy: v.number(),
+      themeCoherence: v.number(),
+      overall: v.number(),
+    })),
   }).index("by_userId", ["userId"]),
 
   chapters: defineTable({
@@ -62,11 +71,16 @@ export default defineSchema({
   render_jobs: defineTable({
     userId: v.string(),
     bookId: v.id("books"),
-    status: v.string(),
+    chapterId: v.optional(v.id("chapters")),
+    type: v.optional(v.string()), // e.g., "vision", "lighting", "consistency"
+    config: v.optional(v.any()), // The brief or task payload
+    status: v.string(), // "pending", "processing", "completed", "failed"
     progress: v.number(),
     cost: v.number(),
     createdAt: v.number(),
-  }).index("by_userId", ["userId"]),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_status", ["status"]),
 
   // 🧠 World Bible (Vector Store)
   // Advanced 2026 Feature: Native Vector Search inside Convex

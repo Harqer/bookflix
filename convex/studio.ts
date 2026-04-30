@@ -135,6 +135,108 @@ export const getBook = query({
   },
 });
 
+export const listBooks = query({
+  args: {},
+  handler: async (ctx: QueryCtx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    return await ctx.db
+      .query("books")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
+      .collect();
+  },
+});
+
+export const submitBook = mutation({
+  args: {
+    title: v.string(),
+    author: v.string(),
+    genre: v.optional(v.string()),
+    rawText: v.string(),
+    productionStyle: v.optional(v.string()),
+    tone: v.optional(v.string()),
+    organizationId: v.optional(v.string()),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    
+    const bookId = await ctx.db.insert("books", {
+      userId: identity.subject,
+      title: args.title,
+      author: args.author,
+      genre: args.genre,
+      tone: args.tone,
+      rawText: args.rawText,
+      status: "pending",
+      chapterCount: 0,
+      analyzedChapters: 0,
+      createdAt: Date.now(),
+    });
+    
+    // Kick off the actual advanced orchestration pipeline
+    await ctx.scheduler.runAfter(0, internal.agents.nif_controller.triggerProductionCycle, {
+      bookId,
+      userId: identity.subject,
+    });
+    
+    return { bookId };
+  },
+});
+
+export const deleteBook = mutation({
+  args: { id: v.id("books") },
+  handler: async (ctx: MutationCtx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const book = await ctx.db.get(args.id);
+    if (!book || book.userId !== identity.subject) throw new Error("Unauthorized");
+    await ctx.db.delete(args.id);
+  },
+});
+
+export const getWorldBible = query({
+  args: { bookId: v.id("books") },
+  handler: async (ctx: QueryCtx, args: { bookId: Id<"books"> }) => {
+    const entries = await ctx.db
+      .query("worldBibles")
+      .filter((q) => q.eq(q.field("bookId"), args.bookId))
+      .collect();
+    
+    // Aggregate metadata into a single structure
+    const characters = entries.filter(e => e.metadata?.type === 'character').map(e => e.metadata);
+    const locations = entries.filter(e => e.metadata?.type === 'location').map(e => e.metadata);
+    const timeline = entries.filter(e => e.metadata?.type === 'timeline').map(e => e.metadata);
+    const themes = entries.filter(e => e.metadata?.type === 'theme').map(e => e.metadata);
+    
+    return { characters, locations, timeline, themes };
+  },
+});
+
+export const triggerConsistencyCheck = mutation({
+  args: { bookId: v.id("books") },
+  handler: async (ctx: MutationCtx, args: { bookId: Id<"books"> }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    
+    // 🚀 Serverless Queueing: Push to render_jobs queue
+    // Any available GPU cluster or Python worker can pull this job, 
+    // run the Stable Diffusion I2I via Redis, and write the scores back.
+    const book = await ctx.db.get(args.bookId);
+    if (!book) throw new Error("Book not found");
+
+    return await ctx.db.insert("render_jobs", {
+      userId: book.userId,
+      bookId: args.bookId,
+      type: "consistency_check",
+      status: "pending",
+      progress: 0,
+      cost: 0,
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const listChapters = query({
   args: { bookId: v.id("books") },
   handler: async (ctx: QueryCtx, args: { bookId: Id<"books"> }) => {
@@ -142,6 +244,19 @@ export const listChapters = query({
       .query("chapters")
       .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
       .collect();
+  },
+});
+
+export const getChapterById = query({
+  args: { id: v.id("chapters") },
+  handler: async (ctx: QueryCtx, args: { id: Id<"chapters"> }) => {
+    const chapter = await ctx.db.get(args.id);
+    if (!chapter) return null;
+    const scenes = await ctx.db
+      .query("videoScenes")
+      .withIndex("by_chapterId", (q) => q.eq("chapterId", args.id))
+      .collect();
+    return { chapter, scenes };
   },
 });
 
@@ -176,6 +291,31 @@ export const addWorldBibleEntryInternal = internalMutation({
   },
   handler: async (ctx: MutationCtx, args: any) => {
     return await ctx.db.insert("worldBibles", { ...args });
+  },
+});
+
+export const createRenderJobInternal = internalMutation({
+  args: {
+    chapterId: v.id("chapters"),
+    bookId: v.id("books"),
+    type: v.string(),
+    config: v.any(),
+  },
+  handler: async (ctx: MutationCtx, args) => {
+    const book = await ctx.db.get(args.bookId);
+    if (!book) throw new Error("Book not found");
+    
+    return await ctx.db.insert("render_jobs", {
+      userId: book.userId,
+      bookId: args.bookId,
+      chapterId: args.chapterId,
+      type: args.type,
+      config: args.config,
+      status: "pending",
+      progress: 0,
+      cost: 0,
+      createdAt: Date.now(),
+    });
   },
 });
 
