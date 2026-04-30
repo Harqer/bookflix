@@ -84,7 +84,12 @@ export const updateBookStatusInternal = internalMutation({
 export const updateBookDNAInternal = internalMutation({
   args: {
     bookId: v.id("books"),
-    dna: v.any(),
+    dna: v.object({
+      theme: v.string(),
+      mood: v.string(),
+      texture: v.string(),
+      era: v.string(),
+    }),
   },
   handler: async (ctx: MutationCtx, args: { bookId: Id<"books">; dna: any }) => {
     await ctx.db.patch(args.bookId, { atmosphericDNA: args.dna });

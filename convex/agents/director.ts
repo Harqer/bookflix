@@ -84,7 +84,12 @@ export const orchestrateChapterProduction = internalAction({
     chapterId: v.id("chapters"),
     bookId: v.id("books"),
     screenplay: v.string(),
-    dna: v.any(), // AtmosphericDNA passed from Scout
+    dna: v.object({
+      theme: v.string(),
+      mood: v.string(),
+      texture: v.string(),
+      era: v.string(),
+    }),
   },
   handler: async (ctx: ActionCtx, args) => {
     return await withSentry("orchestrateChapterProduction", async () => {
