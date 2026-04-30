@@ -1,6 +1,6 @@
 import { getDefaultConfig } from "expo/metro-config.js";
-import { withNativeWind } from "nativewind/metro.js";
-import { withSentryConfig } from "@sentry/react-native/metro.js";
+import { withNativeWind } from "nativewind/metro";
+import { withSentryConfig } from "@sentry/react-native/metro";
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(process.cwd());
