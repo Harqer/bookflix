@@ -1,0 +1,26 @@
+diff --git a/node_modules/react-native/src/private/components/virtualview/VirtualViewNativeComponent.js b/node_modules/react-native/src/private/components/virtualview/VirtualViewNativeComponent.js
+index 45169e4..8ea1d15 100644
+--- a/node_modules/react-native/src/private/components/virtualview/VirtualViewNativeComponent.js
++++ b/node_modules/react-native/src/private/components/virtualview/VirtualViewNativeComponent.js
+@@ -88,7 +88,7 @@ type VirtualViewNativeProps = Readonly<{
+   /**
+    * See `NativeModeChangeEvent`.
+    */
+-  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
++  onModeChange?: DirectEventHandler<NativeModeChangeEvent>,
+ }>;
+ 
+ export default codegenNativeComponent<VirtualViewNativeProps>('VirtualView', {
+diff --git a/node_modules/react-native/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js b/node_modules/react-native/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
+index 45169e4..8ea1d15 100644
+--- a/node_modules/react-native/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
++++ b/node_modules/react-native/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
+@@ -88,7 +88,7 @@ type VirtualViewExperimentalNativeProps = Readonly<{
+   /**
+    * See `NativeModeChangeEvent`.
+    */
+-  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
++  onModeChange?: DirectEventHandler<NativeModeChangeEvent>,
+ }>;
+ 
+ export default codegenNativeComponent<VirtualViewExperimentalNativeProps>(
