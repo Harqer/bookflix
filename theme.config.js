@@ -1,5 +1,5 @@
 /** @type {const} */
-export const themeColors = {
+const themeColors = {
   // BookCinema High-End Cinematic palette — Netflix Red, Deep Black, Slate
   primary:    { light: '#E50914', dark: '#E50914' }, // Netflix Red
   background: { light: '#F5F5F1', dark: '#000000' }, // Pure White / Deep Black
@@ -14,3 +14,5 @@ export const themeColors = {
   accent:     { light: '#B81D24', dark: '#B81D24' }, // Dark Red
   gold:       { light: '#FFD700', dark: '#FFD700' }, // Gold
 };
+
+module.exports = { themeColors };

@@ -1,6 +1,6 @@
-import { themeColors } from "./theme.config.js";
-import nativewind from "nativewind/preset";
-import plugin from "tailwindcss/plugin";
+const { themeColors } = require("./theme.config.js");
+const nativewind = require("nativewind/preset");
+const plugin = require("tailwindcss/plugin");
 
 const tailwindColors = Object.fromEntries(
   Object.entries(themeColors).map(([name, swatch]) => [
@@ -14,7 +14,7 @@ const tailwindColors = Object.fromEntries(
 );
 
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   darkMode: "class",
   content: [
     "./app/**/*.{js,ts,tsx}",
