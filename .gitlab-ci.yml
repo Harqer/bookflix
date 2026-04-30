@@ -1,9 +1,44 @@
-# 🎞️ BookCinema: CI/CD Pipeline (Disabled for Manual Initial Setup)
-# This file is currently disabled to allow for a clean manual deployment to Vercel.
+# 🎞️ BookCinema: Production CI/CD Pipeline
+# 2026 Sovereign Studio Standard (OpenTofu + Infisical)
 
-# stages:
-#   - plan
-#   - apply
-#   - deploy
+stages:
+  - plan
+  - apply
+  - deploy
 
-# (Full configuration preserved in history)
+variables:
+  OPENTOFU_VERSION: "1.10.0"
+  PNPM_HOME: "/root/.local/share/pnpm"
+  PATH: "$PNPM_HOME:$PATH"
+
+# --- Infrastructure Stage (OpenTofu) ---
+tofu_plan:
+  stage: plan
+  image: opentofu/opentofu:${OPENTOFU_VERSION}
+  script:
+    - cd studio-infra
+    - tofu init
+    - tofu plan -out=tfplan
+  artifacts:
+    paths:
+      - studio-infra/tfplan
+  only:
+    - main
+
+# --- Application Stage (Convex & Vercel) ---
+app_deploy:
+  stage: deploy
+  image: node:22
+  before_script:
+    - npm install -g pnpm@10.33.2 vercel
+    - curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | bash
+    - apt-get update && apt-get install -y infisical
+  script:
+    # Arm & Deploy Convex
+    - export CONVEX_DEPLOYMENT=savory-ermine-717
+    - infisical export --env=prod --format=dotenv | npx convex deploy
+    # Arm & Deploy Vercel
+    - infisical export --env=prod --format=dotenv | vercel env add
+    - vercel --prod --confirm --token $VERCEL_TOKEN
+  only:
+    - main

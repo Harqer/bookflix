@@ -25,13 +25,13 @@
     "@sentry/react-native": "^8.9.2",
     "convex": "^1.36.1",
     "expo": "~55.0.18",
-    "expo-audio": "~0.3.11",
+    "expo-audio": "~55.0.14",
     "expo-constants": "~55.0.15",
     "expo-linking": "~55.0.14",
     "expo-router": "~55.0.13",
     "expo-secure-store": "~55.0.13",
     "expo-status-bar": "~55.0.5",
-    "expo-video": "~2.0.12",
+    "expo-video": "~55.0.15",
     "nativewind": "^4.2.3",
     "react": "19.2.5",
     "react-dom": "19.2.5",
@@ -60,6 +60,10 @@
       "esbuild",
       "utf-8-validate",
       "bufferutil"
-    ]
+    ],
+    "overrides": {
+      "uuid": ">=14.0.0",
+      "postcss": ">=8.5.10"
+    }
   }
 }
