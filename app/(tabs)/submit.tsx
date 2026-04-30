@@ -23,7 +23,6 @@ import Animated, {
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
 
 // ─── Step Indicator ───────────────────────────────────────────────────────────
@@ -132,19 +131,20 @@ export default function SubmitScreen() {
   const [productionStyle, setProductionStyle] = useState<"cinematic" | "animated" | "documentary">("cinematic");
   const [tone, setTone] = useState("dramatic");
 
-  const submitBook = trpc.books.submit.useMutation({
-    onSuccess: (data) => {
+  // TODO: Replace with Convex mutation
+  const submitBook = {
+    isPending: false,
+    mutate: (data: any) => {
       Alert.alert(
         "Production Started!",
         `"${title}" has been submitted. The AI pipeline is now analyzing your book.`,
         [
           {
             text: "Track Progress",
-            onPress: () => router.push(`/book/${data.bookId}` as any),
+            onPress: () => router.push(`/book/placeholder_id` as any),
           },
-        ],
+        ]
       );
-      // Reset form
       setStep(0);
       setTitle("");
       setAuthor("");
@@ -152,11 +152,8 @@ export default function SubmitScreen() {
       setRawText("");
       setProductionStyle("cinematic");
       setTone("dramatic");
-    },
-    onError: (err) => {
-      Alert.alert("Submission Failed", err.message);
-    },
-  });
+    }
+  };
 
   const wordCount = rawText.trim().split(/\s+/).filter(Boolean).length;
 
