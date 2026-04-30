@@ -6,18 +6,21 @@ const path = require("path");
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(process.cwd());
 
+// 👑 Sovereign Toolchain Alignment
+// We add .flow to the source extensions so the bundler can see our vendored files.
+config.resolver.sourceExts.push("flow");
+
 // 👑 Sovereign Redirection: Direct Correction Pattern
-// Instead of patching node_modules, we redirect the bundler to our corrected source.
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.endsWith("VirtualViewNativeComponent")) {
     return {
-      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewNativeComponent.js"),
+      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewNativeComponent.flow"),
       type: "sourceFile",
     };
   }
   if (moduleName.endsWith("VirtualViewExperimentalNativeComponent")) {
     return {
-      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewExperimentalNativeComponent.js"),
+      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewExperimentalNativeComponent.flow"),
       type: "sourceFile",
     };
   }
