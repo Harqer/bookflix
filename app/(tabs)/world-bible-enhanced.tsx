@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 import { ScrollView, Text, View, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { trpc } from "@/lib/trpc";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
@@ -69,10 +68,9 @@ export default function WorldBibleEnhanced() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const bookIdNum = bookId ? parseInt(bookId) : 0;
-  const worldBibleQuery = trpc.worldBible.getByBookId.useQuery(
-    { bookId: bookIdNum },
-    { enabled: bookIdNum > 0 }
-  );
+  
+  // TODO: Migrate to Convex api.worldBible
+  const worldBibleQuery = { data: null };
 
   // Simulate consistency analysis
   const handleAnalyzeConsistency = async () => {

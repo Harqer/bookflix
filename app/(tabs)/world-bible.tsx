@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/hooks/use-auth";
 
 type TabKey = "characters" | "locations" | "timeline";
@@ -16,11 +15,9 @@ export default function WorldBibleScreen() {
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("characters");
 
-  const { data: books } = trpc.books.list.useQuery(undefined, { enabled: !!user });
-  const { data: worldBible } = trpc.worldBible.getByBookId.useQuery(
-    { bookId: selectedBookId! },
-    { enabled: !!selectedBookId },
-  );
+  // TODO: Migrate to Convex api.worldBible
+  const books: any[] = [];
+  const worldBible: any = null;
 
   const completedBooks = books?.filter((b) => b.status === "complete" || (b.chapterCount ?? 0) > 0) || [];
 

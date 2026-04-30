@@ -4,7 +4,6 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/hooks/use-auth";
-import { trpc } from "@/lib/trpc";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 

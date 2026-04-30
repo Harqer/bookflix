@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { trpc } from "@/lib/trpc";
 
 type ViewMode = "screenplay" | "scenes";
 
@@ -15,7 +14,9 @@ export default function ChapterScreen() {
   const chapterId = parseInt(id || "0");
   const [viewMode, setViewMode] = useState<ViewMode>("screenplay");
 
-  const { data, isLoading } = trpc.chapters.getById.useQuery({ id: chapterId });
+  // TODO: Migrate to Convex api.chapters
+  const data: any = null;
+  const isLoading = false;
 
   if (isLoading) {
     return (

@@ -2,7 +2,6 @@ import { ScrollView, View, Text, Pressable } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { useColors } from '@/hooks/use-colors';
 import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
 
 interface CameraControlState {
   zoomIntensity: number;
