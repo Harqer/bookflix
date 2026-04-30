@@ -2,8 +2,8 @@ diff --git a/src/private/components/virtualview/VirtualViewExperimentalNativeCom
 --- a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
 +++ b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
 @@ -85,10 +85,6 @@
- type VirtualViewNativeProps = Readonly<{
-   ...ViewProps,
+    */
+   renderState: Int32,
  
 -  /**
 -   * See `NativeModeChangeEvent`.
@@ -16,8 +16,8 @@ diff --git a/src/private/components/virtualview/VirtualViewNativeComponent.js b/
 --- a/src/private/components/virtualview/VirtualViewNativeComponent.js
 +++ b/src/private/components/virtualview/VirtualViewNativeComponent.js
 @@ -85,10 +85,6 @@
- type VirtualViewNativeProps = Readonly<{
-   ...ViewProps,
+    */
+   renderState: Int32,
  
 -  /**
 -   * See `NativeModeChangeEvent`.
