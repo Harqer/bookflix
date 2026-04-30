@@ -11,13 +11,13 @@ const config = getDefaultConfig(process.cwd());
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.endsWith("VirtualViewNativeComponent")) {
     return {
-      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewNativeComponent.tsx"),
+      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewNativeComponent.js"),
       type: "sourceFile",
     };
   }
   if (moduleName.endsWith("VirtualViewExperimentalNativeComponent")) {
     return {
-      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewExperimentalNativeComponent.tsx"),
+      filePath: path.resolve(__dirname, "vendor/react-native/VirtualViewExperimentalNativeComponent.js"),
       type: "sourceFile",
     };
   }

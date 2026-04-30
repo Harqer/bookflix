@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -8,6 +9,7 @@
  * @format
  */
 
+/*::
 import type {ViewProps} from 'react-native/Libraries/Components/View/ViewPropTypes';
 import type {
   DirectEventHandler,
@@ -34,13 +36,18 @@ export type NativeModeChangeEvent = Readonly<{
   }>,
 }>;
 
-type VirtualViewNativeProps = ViewProps & Readonly<{
+type VirtualViewNativeProps = Readonly<{
+  ...ViewProps,
   initialHidden?: boolean,
   removeClippedSubviews?: boolean,
   renderState: Int32,
   onModeChange?: DirectEventHandler<NativeModeChangeEvent>,
 }>;
 
-export default codegenNativeComponent<VirtualViewNativeProps>('VirtualView', {
+export default (codegenNativeComponent<VirtualViewNativeProps>('VirtualView', {
   interfaceOnly: true,
-}) as HostComponent<VirtualViewNativeProps>;
+}) as HostComponent<VirtualViewNativeProps>);
+*/
+
+import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+export default codegenNativeComponent('VirtualView', { interfaceOnly: true });

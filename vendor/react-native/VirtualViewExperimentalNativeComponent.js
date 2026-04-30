@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -8,6 +9,7 @@
  * @format
  */
 
+/*::
 import type {ViewProps} from 'react-native/Libraries/Components/View/ViewPropTypes';
 import type {
   DirectEventHandler,
@@ -34,17 +36,19 @@ export type NativeModeChangeEvent = Readonly<{
   }>,
 }>;
 
-type VirtualViewExperimentalNativeProps = ViewProps & Readonly<{
+type VirtualViewExperimentalNativeProps = Readonly<{
+  ...ViewProps,
   initialHidden?: boolean,
   removeClippedSubviews?: boolean,
   renderState: Int32,
   onModeChange?: DirectEventHandler<NativeModeChangeEvent>,
 }>;
 
-// TODO: Rename to eliminate "Experimental" suffix in the name.
-export default codegenNativeComponent<VirtualViewExperimentalNativeProps>(
+export default (codegenNativeComponent<VirtualViewExperimentalNativeProps>(
   'VirtualViewExperimental',
-  {
-    interfaceOnly: true,
-  },
-) as HostComponent<VirtualViewExperimentalNativeProps>;
+  {interfaceOnly: true},
+) as HostComponent<VirtualViewExperimentalNativeProps>);
+*/
+
+import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+export default codegenNativeComponent('VirtualViewExperimental', { interfaceOnly: true });
