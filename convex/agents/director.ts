@@ -5,6 +5,8 @@ import { withSentry } from "../lib/sentry";
 import { logger } from "../lib/observability";
 import { Id } from "../_generated/dataModel";
 
+import { generateEmbedding } from "../lib/ai";
+
 /**
  * 🎬 Director Agent (Cloud-Native & Dynamic)
  * Orchestrates the Vision and Lighting based on Atmospheric DNA.
@@ -41,22 +43,40 @@ function interpretCinematography(dna: AtmosphericDNA) {
   return { camera, lighting };
 }
 
-async function dispatchToVisionMCP(chapterId: Id<"chapters">, brief: any) {
+async function dispatchToVisionMCP(chapterId: Id<"chapters">, brief: ReturnType<typeof interpretCinematography>) {
   const VISION_MCP_URL = process.env.UNREAL_MCP_URL;
   if (!VISION_MCP_URL) throw new Error("UNREAL_MCP_URL not configured");
 
   await logger.info("🎥 Dispatching Spatial Brief...", chapterId, brief);
-  // 2026: Cloud-Native MCP Dispatch using high-performance fetch
-  // await fetch(VISION_MCP_URL, { method: "POST", body: JSON.stringify(brief.camera) });
+  
+  // 🚀 Active Webhook: Dispatching to Unreal Engine MCP
+  await fetch(VISION_MCP_URL, { 
+    method: "POST", 
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      chapterId, 
+      config: brief.camera,
+      timestamp: Date.now()
+    }) 
+  });
 }
 
-async function dispatchToLightingMCP(chapterId: Id<"chapters">, brief: any) {
+async function dispatchToLightingMCP(chapterId: Id<"chapters">, brief: ReturnType<typeof interpretCinematography>) {
   const LIGHTING_MCP_URL = process.env.NUKE_MCP_URL;
   if (!LIGHTING_MCP_URL) throw new Error("NUKE_MCP_URL not configured");
 
   await logger.info("💡 Dispatching Lighting Brief...", chapterId, brief);
-  // 2026: Cloud-Native MCP Dispatch using high-performance fetch
-  // await fetch(LIGHTING_MCP_URL, { method: "POST", body: JSON.stringify(brief.lighting) });
+  
+  // 🚀 Active Webhook: Dispatching to Nuke Lighting MCP
+  await fetch(LIGHTING_MCP_URL, { 
+    method: "POST", 
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      chapterId, 
+      config: brief.lighting,
+      timestamp: Date.now()
+    }) 
+  });
 }
 
 export const orchestrateChapterProduction = internalAction({
@@ -66,16 +86,19 @@ export const orchestrateChapterProduction = internalAction({
     screenplay: v.string(),
     dna: v.any(), // AtmosphericDNA passed from Scout
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: ActionCtx, args) => {
     return await withSentry("orchestrateChapterProduction", async () => {
       const traceId = args.chapterId;
+      const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
+
       await logger.info("🎬 Director: Starting Production Flow", traceId);
 
-      // 1. Semantic Context Retrieval (Vector Search for Millions of Users)
+      // 1. Semantic Context Retrieval (Vector Search)
+      const embedding = await generateEmbedding(NVIDIA_API_KEY || "", args.screenplay.slice(0, 500));
       const semanticContext = await ctx.runAction(api.studio.searchWorldBible, {
         bookId: args.bookId,
         query: `Scene context for: ${args.screenplay.slice(0, 500)}`,
-        embedding: new Array(1536).fill(0.1), // Placeholder: In production, use NVIDIA NIM embedding
+        embedding,
       });
 
       await logger.info("🧠 Semantic Context Retrieved", traceId, { entries: semanticContext.length });

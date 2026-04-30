@@ -5,6 +5,7 @@ import { logger } from "../lib/observability";
 import { ActionCtx } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
 import { withSentry } from "../lib/sentry";
+import { generateEmbedding } from "../lib/ai";
 
 /**
  * 📚 Scout Agent (Gemini 1.5 Pro Edition)
@@ -34,7 +35,7 @@ interface FullAnalysis {
 }
 
 async function fetchGeminiAnalysis(apiKey: string, text: string): Promise<FullAnalysis> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
   
   const response = await fetch(url, {
     method: "POST",
@@ -69,11 +70,6 @@ async function fetchGeminiAnalysis(apiKey: string, text: string): Promise<FullAn
   return JSON.parse(data.candidates[0].content.parts[0].text);
 }
 
-async function generateEmbedding(apiKey: string, text: string): Promise<number[]> {
-  // 2026: NVIDIA NIM Embedding Call
-  // For now, return normalized vector
-  return new Array(1536).fill(0.1);
-}
 
 export const analyzeBook = action({
   args: {

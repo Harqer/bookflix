@@ -1,9 +1,11 @@
 module.exports = function (api) {
   api.cache(true);
 
-  // 🚀 Detection: Check if we are building for web (Vercel)
-  // This avoids the "api.caller" caching conflict
-  const isWeb = process.env.EXPO_PUBLIC_PLATFORM === "web" || process.env.NODE_ENV === "production";
+  // 🚀 Detection: Aggressive platform check for Vercel/Web builds
+  const isWeb =
+    process.env.EXPO_PUBLIC_PLATFORM === "web" ||
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL === "1";
 
   return {
     presets: [
@@ -11,7 +13,6 @@ module.exports = function (api) {
         "babel-preset-expo",
         {
           jsxImportSource: "nativewind",
-          // Bypass mobile-only codegen for web stability
           native: !isWeb,
         },
       ],
@@ -20,6 +21,17 @@ module.exports = function (api) {
     plugins: [
       "@babel/plugin-transform-flow-strip-types",
       "react-native-reanimated/plugin",
+      [
+        "module-resolver",
+        {
+          alias: isWeb
+            ? {
+                "react-native/src/private/components/virtualview/VirtualViewNativeComponent": "./lib/fabric-mock",
+                "react-native/src/private/components/virtualview/VirtualViewExperimentalNativeComponent": "./lib/fabric-mock",
+              }
+            : {},
+        },
+      ],
     ],
   };
 };

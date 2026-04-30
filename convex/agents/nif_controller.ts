@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction } from "../_generated/server";
+import { ActionCtx, internalAction } from "../_generated/server";
 import { internal, api } from "../_generated/api";
 import { logger } from "../lib/observability";
 import { withSentry } from "../lib/sentry";
@@ -13,7 +13,7 @@ import { Id } from "../_generated/dataModel";
 
 // --- 1. Focus Units (Internal Logic Atoms) ---
 
-async function runIngestionPhase(ctx: any, bookId: Id<"books">, userId: string) {
+async function runIngestionPhase(ctx: ActionCtx, bookId: Id<"books">, userId: string) {
   await logger.info("📚 NIF: Phase 1 - Ingestion (The Scout)", bookId);
   return await ctx.runAction(api.agents.book_analyst.analyzeBook, {
     bookId,
@@ -21,7 +21,7 @@ async function runIngestionPhase(ctx: any, bookId: Id<"books">, userId: string) 
   });
 }
 
-async function runOrchestrationPhase(ctx: any, bookId: Id<"books">) {
+async function runOrchestrationPhase(ctx: ActionCtx, bookId: Id<"books">) {
   await logger.info("🎬 NIF: Phase 2 - Orchestration (The Director)", bookId);
   
   const book = await ctx.runQuery(api.studio.getBook, { id: bookId });

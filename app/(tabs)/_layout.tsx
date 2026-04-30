@@ -24,6 +24,7 @@ export default function TabLayout() {
           <BlurView
             intensity={80}
             tint="dark"
+            experimentalBlurMethod="system"
             style={{
               position: 'absolute',
               top: 0,
