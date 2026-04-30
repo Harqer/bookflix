@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction } from "../_generated/server";
+import { ActionCtx, internalAction } from "../_generated/server";
 import { internal, api } from "../_generated/api";
 import { withSentry } from "../lib/sentry";
 import { logger } from "../lib/observability";

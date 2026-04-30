@@ -31,7 +31,7 @@ async function runOrchestrationPhase(ctx: ActionCtx, bookId: Id<"books">) {
   
   // Parallel execution for high-throughput scaling
   return await Promise.all(
-    chapters.map((ch: any) =>
+    chapters.map((ch) =>
       ctx.runAction(internal.agents.director.orchestrateChapterProduction, {
         chapterId: ch._id,
         bookId,
@@ -49,7 +49,7 @@ export const triggerProductionCycle = internalAction({
     bookId: v.id("books"),
     userId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: ActionCtx, args) => {
     return await withSentry("triggerProductionCycle", async () => {
       const traceId = args.bookId;
       

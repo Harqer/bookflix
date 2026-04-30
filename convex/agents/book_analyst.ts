@@ -67,7 +67,11 @@ async function fetchGeminiAnalysis(apiKey: string, text: string): Promise<FullAn
   }
 
   const data = await response.json();
-  return JSON.parse(data.candidates[0].content.parts[0].text);
+  const rawContent = data.candidates[0].content.parts[0].text;
+  
+  // 🚀 2026 Sovereign Parser: Handles raw JSON or Markdown-wrapped JSON
+  const jsonContent = rawContent.replace(/```json\n?|```/g, "").trim();
+  return JSON.parse(jsonContent);
 }
 
 
@@ -76,7 +80,7 @@ export const analyzeBook = action({
     bookId: v.id("books"),
     userId: v.string(),
   },
-  handler: async (ctx: ActionCtx, args: { bookId: Id<"books">; userId: string }) => {
+  handler: async (ctx: ActionCtx, args) => {
     return await withSentry("analyzeBook", async () => {
       const traceId = args.bookId;
       const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
