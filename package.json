@@ -25,11 +25,13 @@
     "@sentry/react-native": "^8.9.2",
     "convex": "^1.36.1",
     "expo": "~55.0.18",
+    "expo-audio": "~0.3.11",
     "expo-constants": "~55.0.15",
     "expo-linking": "~55.0.14",
     "expo-router": "~55.0.13",
     "expo-secure-store": "~55.0.13",
     "expo-status-bar": "~55.0.5",
+    "expo-video": "~2.0.12",
     "nativewind": "^4.2.3",
     "react": "19.2.5",
     "react-dom": "19.2.5",
@@ -50,5 +52,14 @@
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.3"
   },
-  "packageManager": "pnpm@10.33.2"
+  "packageManager": "pnpm@10.33.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@sentry/cli",
+      "esbuild",
+      "utf-8-validate",
+      "bufferutil"
+    ]
+  }
 }
