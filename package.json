@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
-  "type": "module",
   "scripts": {
     "dev": "npx expo start --web --port ${EXPO_PORT:-8081}",
     "build": "npx expo export",
