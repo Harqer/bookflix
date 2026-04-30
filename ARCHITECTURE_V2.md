@@ -16,30 +16,50 @@ BookCinema is built as a **Studio-in-a-Box**, integrating industry-standard DCC 
 - **Database**: PostgreSQL (Neon) via Drizzle ORM.
 - **Storage**: AWS S3 (High-volume Video Assets).
 
-## 2. The Filmmaking Pipeline
+## 2. The Sovereign Studio Layer Model (v2026.04)
 
-The pipeline is divided into five distinct stages, orchestrated by specialized AI agents.
+BookCinema has transitioned from general-purpose AI automation to a **Physically-Grounded Cinematic Pipeline**, leveraging NVIDIA's world-foundation models for technical execution and specialized LLMs for directorial intent.
 
-### Phase 1: Narrative Analysis (Gemini 1.5 Pro)
-- **World Bible Extraction**: Analyzes 1M+ tokens of book text to extract characters, locations, and thematic rules.
-- **Chapter Splitting**: High-fidelity semantic segmentation of the narrative.
+### Layer 1: Narrative Intelligence (The Scout)
+*   **Primary Agent**: **Gemini 1.5 Pro** (Context Specialist)
+*   **Core Logic**: **Atmospheric DNA Extraction**. 
+*   **Role**: Beyond plot points, it extracts the thematic weight, emotional subtext, and lighting/shading "anchors" directly from the book's prose.
+*   **Deliverable**: Semantic World Bible (JSON).
 
-### Phase 2: Screenplay & Directing (Director-LoRA)
-- **Screenplay Generation**: Llama 3 fine-tuned for industry-standard screenplay formatting.
-- **Directing (GenDoP)**: Generates mathematically precise camera trajectories and shot lists.
+### Layer 2: Creative Direction (The Director)
+*   **Primary Agent**: **Claude 3.5 Sonnet** (Cinematic Supervisor)
+*   **Core Logic**: **Semantic-to-Cinematic Mapping**.
+*   **Role**: Translates the Scout's "Atmospheric DNA" into professional film language. It makes technical choices about focal lengths, lighting schemas (Three-Point), and composition (180-degree rule) based on film theory.
+*   **Deliverable**: USD Directorial Brief (Metadata).
 
-### Phase 3: Previz & 3D Layout (Blender/Unreal MCP)
-- **CG Layout**: AI agents trigger the **Blender MCP Server** to set up 3D scenes based on the World Bible.
-- **Camera Animation**: Camera paths are animated in 3D space to ensure physical accuracy.
-- **Pass Rendering**: Structural passes (Depth, Normal, Object ID) are rendered.
+### Layer 3: Physical Execution (The Engine)
+*   **Primary Platform**: **NVIDIA Cosmos** (World Foundation Model)
+*   **Core Logic**: **Physical AI & Ray Tracing**.
+*   **Role**: The "Newton" of our studio. It understands physics, object permanence, and light transport natively. It builds the 3D world based on the Director's USD Brief, ensuring the simulation is physically real.
+*   **Tools**: **NVIDIA NIMs** (Specialized microservices for Lighting, Shading, and USD validation).
 
-### Phase 4: GenAI Production (LongCat/Runway)
-- **Texture & Motion**: GenAI models use the CG passes as control signals to generate photorealistic textures and organic motion.
-- **Long-Form Continuation**: Autoregressive video generation for chapter-to-episode continuity.
+### Layer 4: Production Automation (DCC Department Heads)
+This layer handles the professional-grade asset creation and polish via **Model Context Protocol (MCP)**.
 
-### Phase 5: Professional Compositing (Nuke MCP)
-- **Final Comp**: The **Compositing MCP Server** triggers Nuke/ComfyUI to blend CG structural layers with GenAI texture layers.
-- **Post-Processing**: Color grading, grain, and high-fidelity 4K output.
+| Platform | Role | Specialized Model |
+| :--- | :--- | :--- |
+| **Unreal / Unity** | Real-time Layout & Assembly | `unreal-mcp` / `unity-mcp` |
+| **Houdini** | Professional Physics/VFX | `houdini-mcp` / `NeuralVDB` |
+| **Maya / Blender** | Character Performance | `maya-mcp` / `blender-mcp` |
+| **Nuke / Resolve** | Compositing & Color | `nuke_mcp` / `resolve-mcp` |
+| **ComfyUI** | GenAI Texture & Motion Polish | `comfyui-mcp` (using FLUX.1/CogVideoX) |
+
+### Layer 5: Experimental & Social (The Flywheel)
+*   **Mojo Flywheel**: Used for training personal LLMs for user interaction. 
+*   **Status**: Non-production critical. This layer is for user-driven creative play and fine-tuning, decoupled from the main cinematic pipeline.
+
+## 3. The Filmmaking Pipeline: Semantic-to-Cinematic
+
+1.  **Atmospheric Extraction**: Scout identifies the "soul" of the book (e.g., *Theme: Oppression*).
+2.  **Directorial Translation**: Director maps "Oppression" to specific technical values (e.g., *Lens: 14mm, Angle: Low, Light: Chiaroscuro*).
+3.  **USD Generation**: Director writes these values into a **USD Scene Description**.
+4.  **Physical Simulation**: **NVIDIA Cosmos** executes the scene, ensuring the light bounces and physical motion are scientifically accurate.
+5.  **Studio Polish**: The DCC MCPs and ComfyUI add the final cinematic textures, audio, and grading.
 
 ## 3. Deployment & Security
 

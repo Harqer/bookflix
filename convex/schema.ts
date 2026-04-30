@@ -4,6 +4,7 @@ import { v } from "convex/values";
 /**
  * 🌊 Convex Reactive Schema
  * Replaces Drizzle/Postgres with a high-performance document store.
+ * Scaled for millions of users with native vector search.
  */
 export default defineSchema({
   users: defineTable({
@@ -32,6 +33,7 @@ export default defineSchema({
     createdAt: v.number(),
     preferredLlm: v.optional(v.union(v.literal("cloud"), v.literal("personal"))),
     backgroundTrainingEnabled: v.optional(v.boolean()),
+    atmosphericDNA: v.optional(v.any()), // Extracted by Scout, used by Director
   }).index("by_userId", ["userId"]),
 
   chapters: defineTable({

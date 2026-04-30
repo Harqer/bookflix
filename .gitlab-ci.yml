@@ -1,55 +1,9 @@
-# 🎞️ BookCinema: Production CI/CD Pipeline
-# 2026 Sovereign Studio Standard
+# 🎞️ BookCinema: CI/CD Pipeline (Disabled for Manual Initial Setup)
+# This file is currently disabled to allow for a clean manual deployment to Vercel.
 
-stages:
-  - plan
-  - apply
-  - deploy
+# stages:
+#   - plan
+#   - apply
+#   - deploy
 
-variables:
-  TERRAFORM_VERSION: "1.5.0"
-  CONVEX_VERSION: "latest"
-
-# --- Infrastructure Stage (Terraform) ---
-terraform_plan:
-  stage: plan
-  image: hashicorp/terraform:${TERRAFORM_VERSION}
-  script:
-    - cd infra
-    - terraform init
-    - terraform plan -out=tfplan
-  artifacts:
-    paths:
-      - infra/tfplan
-  only:
-    - main
-
-terraform_apply:
-  stage: apply
-  image: hashicorp/terraform:${TERRAFORM_VERSION}
-  script:
-    - cd infra
-    - terraform init
-    - terraform apply -auto-approve tfplan
-  when: manual
-  only:
-    - main
-
-# --- Application Stage (Convex & Vercel) ---
-convex_deploy:
-  stage: deploy
-  image: node:latest
-  script:
-    - npm install
-    - npx convex deploy --cmd 'npm run build'
-  only:
-    - main
-
-vercel_deploy:
-  stage: deploy
-  image: node:latest
-  script:
-    - npm install -g vercel
-    - vercel deploy --prod --token $VERCEL_TOKEN
-  only:
-    - main
+# (Full configuration preserved in history)

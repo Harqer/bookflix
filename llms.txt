@@ -1,27 +1,30 @@
-# BookCinema Enterprise Model Registry (v2026.04)
+# BookCinema Sovereign Model Registry (v2026.04)
 
-## 1. The Creative Core (Script & Logic)
-- **Primary Orchestrator**: `gpt-4o-2024-08-06` (Director)
-- **Aesthetic Auditor**: `claude-3-5-sonnet-20240620` (Critic/RLAIF)
-- **Context Specialist**: `gemini-1.5-pro-002` (Deep Book Analysis)
+## 1. The Creative Core (Narrative & Intent)
+- **Primary Orchestrator**: `claude-3-5-sonnet-20240620` (Cinematic Supervisor / Semantic Mapping)
+- **Aesthetic Auditor**: `claude-3-5-sonnet-20240620` (RLAIF Quality Control)
+- **Context Specialist**: `gemini-1.5-pro-002` (Atmospheric DNA Extraction / 2M Token Context)
 
-## 2. Visual Production (HuggingFace / Specialized)
-- **Image/Frame Base**: `black-forest-labs/FLUX.1-schnell` (Speed-optimized)
-- **Video Temporal**: `THUDM/CogVideoX-5b` (Cinematic consistency)
-- **Consistency LoRA**: `x-labs-flux-controlnet-canny` (Structure lock)
+## 2. The Physical Engine (World-Building)
+- **World Foundation**: `nvidia-cosmos-v2.5` (Text2World / Image2World)
+- **Physical Reasoner**: `nvidia-cosmos-reason-vlm` (Space/Time/Physics Logic)
+- **Lighting/Shading**: `nvidia-nim-lighting-v1` (Physically accurate light transport)
 
-## 3. DCC Automation (GitHub / Fine-Tuned)
-- **Blender (3D Architecture)**: `Blender-GPT-Llama-3-70B` (Specialized Python API)
-- **Houdini (VFX/Sims)**: `NeuralVDB-Houdini-V1` (Predictive fluid simulation)
-- **Nuke (Compositing)**: `SAM-2-Realtime` (Automated Rotoscoping/Masking)
-- **Maya (Animation)**: `RigNet-v2` (Automated Skeletal Rigging)
+## 3. Visual Production (Frame & Texture)
+- **Texture Base**: `black-forest-labs/FLUX.1-schnell` (ComfyUI pass)
+- **Temporal Consistency**: `THUDM/CogVideoX-5b` (Frame-to-frame locking)
 
-## 4. Audio & Sensory (API-Driven)
-- **Voiceover**: `eleven-multilingual-v2` (Dialogue)
-- **Cinematic Score**: `suno-v4-pro` (Thematic music)
-- **Foley/SFX**: `stable-audio-open-1.0` (Ambient sound)
+## 4. DCC Automation (MCP Tools)
+- **Blender (3D Architecture)**: `Blender-GPT-Llama-3-70B`
+- **Houdini (VFX/Sims)**: `NeuralVDB-Houdini-V1`
+- **Nuke (Compositing)**: `SAM-2-Realtime`
+- **Maya (Animation)**: `RigNet-v2`
 
-## 5. Deployment Strategy (Infrastructure)
-- **Local MCP**: Stdio Transport (Low Latency)
-- **Cloud MCP**: SSE Transport (Scalable Render Farm)
-- **Registry**: MCP.run / LangSmith Hosted Toolset
+## 5. Audio & Sensory
+- **Dialogue**: `eleven-multilingual-v2`
+- **Cinematic Score**: `suno-v4-pro`
+- **Foley/SFX**: `stable-audio-open-1.0`
+
+## 6. Experimental Layer
+- **Personal LLM**: `mojo-flywheel-custom` (User training & interaction)
+- **Playground**: `llama-3-8b-instruct` (Fast feedback)

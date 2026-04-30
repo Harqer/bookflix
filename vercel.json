@@ -1,20 +1,6 @@
 {
   "version": 2,
-  "framework": "expo",
   "installCommand": "pnpm install",
   "buildCommand": "pnpm build",
-  "security": {
-    "environmentVariables": {
-      "defaultType": "sensitive",
-      "autoRotate": true
-    },
-    "secretScanning": {
-      "enabled": true,
-      "providers": ["nvidia", "anthropic", "clerk", "convex"]
-    }
-  },
-  "features": {
-    "aiMonitoring": true,
-    "edgeFunctions": true
-  }
+  "outputDirectory": "dist"
 }

@@ -1,72 +1,78 @@
 import { v } from "convex/values";
-import { internalAction, mutation, query } from "../_generated/server";
-import { api, internal } from "../_generated/api";
+import { internalAction } from "../_generated/server";
+import { internal, api } from "../_generated/api";
+import { logger } from "../lib/observability";
+import { withSentry } from "../lib/sentry";
+import { Id } from "../_generated/dataModel";
 
 /**
- * 🎡 NIF Sovereign Controller
- * Orchestrates the "Firing Cycle" of the Personal Mojo LLM.
+ * 👑 Sovereign NIF Controller (Atomic Architecture Edition)
+ * Purpose: Global Orchestration of the Cinematic Firing Cycle.
+ * Principles: Single Responsibility, Composable Phases, Scalable State.
  */
 
-/**
- * 🛰️ Cloud Dispatcher: Handles communication with the remote H200 cluster
- */
-async function dispatchToMojo(phase: string, bookId: string) {
-  const FLYWHEEL_URL = process.env.MOJO_FLYWHEEL_URL;
-  if (!FLYWHEEL_URL) throw new Error("MOJO_FLYWHEEL_URL not configured in production.");
+// --- 1. Focus Units (Internal Logic Atoms) ---
 
-  const response = await fetch(FLYWHEEL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      phase, 
-      bookId,
-      manifold_dim: 5,
-      timestamp: Date.now()
-    })
+async function runIngestionPhase(ctx: any, bookId: Id<"books">, userId: string) {
+  await logger.info("📚 NIF: Phase 1 - Ingestion (The Scout)", bookId);
+  return await ctx.runAction(api.agents.book_analyst.analyzeBook, {
+    bookId,
+    userId,
   });
-
-  if (!response.ok) throw new Error(`Mojo Flywheel Error: ${response.statusText}`);
-  return await response.json();
 }
 
-/**
- * 🎡 NIF Sovereign Controller: Orchestrates the "Firing Cycle"
- * Applying 'Invisible' Atomic principles for composability.
- */
-export const triggerFlywheel = internalAction({
+async function runOrchestrationPhase(ctx: any, bookId: Id<"books">) {
+  await logger.info("🎬 NIF: Phase 2 - Orchestration (The Director)", bookId);
+  
+  const book = await ctx.runQuery(api.studio.getBook, { id: bookId });
+  if (!book || !book.atmosphericDNA) throw new Error("Narrative Context Missing");
+
+  const chapters = await ctx.runQuery(api.studio.listChapters, { bookId });
+  
+  // Parallel execution for high-throughput scaling
+  return await Promise.all(
+    chapters.map((ch: any) =>
+      ctx.runAction(internal.agents.director.orchestrateChapterProduction, {
+        chapterId: ch._id,
+        bookId,
+        screenplay: ch.summary || "",
+        dna: book.atmosphericDNA,
+      })
+    )
+  );
+}
+
+// --- 2. The Orchestrator (Global Action) ---
+
+export const triggerProductionCycle = internalAction({
   args: {
     bookId: v.id("books"),
-    phase: v.string(),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    // 1. Context Acquisition
-    const book = await ctx.runQuery(api.studio.getBook, { id: args.bookId });
-    if (!book) throw new Error("Book not found");
-
-    const preferredLlm = book.preferredLlm || "cloud";
-    console.log(`🚀 Routing Production Phase: ${args.phase} [Mode: ${preferredLlm}]`);
-
-    // 2. Multi-Cloud Routing
-    if (preferredLlm === "personal") {
+    return await withSentry("triggerProductionCycle", async () => {
+      const traceId = args.bookId;
+      
       try {
-        return await dispatchToMojo(args.phase, args.bookId);
+        // Step 1: Scout Ingestion
+        await runIngestionPhase(ctx, args.bookId, args.userId);
+
+        // Step 2: Director Orchestration
+        await runOrchestrationPhase(ctx, args.bookId);
+
+        await logger.info("✅ NIF: Firing Cycle Complete", traceId);
+        return { status: "success" };
+
       } catch (err) {
-        console.error("❌ Mojo Cloud Dispatch Failed", err);
+        await logger.error("❌ NIF: Firing Cycle Failed", traceId, { error: String(err) });
+        
+        await ctx.runMutation(internal.studio.updateBookStatusInternal, {
+          bookId: args.bookId,
+          status: "failed",
+        });
+        
         throw err;
       }
-    }
-
-    console.log(`☁️ Cloud Standard: ${args.phase} handled by primary pipeline.`);
-    return { status: "queued", provider: "cloud_standard" };
-  },
-});
-
-export const updateLlmPreference = mutation({
-  args: {
-    bookId: v.id("books"),
-    preferredLlm: v.union(v.literal("cloud"), v.literal("personal")),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.bookId, { preferredLlm: args.preferredLlm });
+    });
   },
 });
