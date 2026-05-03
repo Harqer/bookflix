@@ -263,6 +263,16 @@ export const createRenderJobInternal = internalMutation({
   },
 });
 
+export const listJobsInternal = internalQuery({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("render_jobs")
+      .withIndex("by_userId", (q) => q.eq("userId", "poc-user-001")) // Filter for POC
+      .collect();
+  },
+});
+
 export const getJobInternal = internalQuery({
   args: { jobId: v.id("render_jobs") },
   handler: async (ctx, args) => {
