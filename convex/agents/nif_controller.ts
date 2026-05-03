@@ -50,3 +50,21 @@ export const orchestrateChapterProduction = internalAction({
     await logger.info("✅ NIF: Sovereign Production Dispatched to Fleet", traceId);
   },
 });
+
+export const triggerProductionCycle = internalAction({
+  args: {
+    bookId: v.id("books"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const traceId = args.bookId;
+    await logger.info("🚀 NIF: Triggering Master Production Cycle...", traceId);
+
+    // 1. Initial Book Analysis (DNA & Chapters)
+    await ctx.runAction(internal.agents.book_analyst.analyzeBook, {
+      bookId: args.bookId,
+    });
+
+    await logger.info("✅ NIF: Master Cycle Triggered Successfully", traceId);
+  },
+});
