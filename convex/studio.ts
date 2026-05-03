@@ -100,6 +100,27 @@ export const updateSceneInternal = internalMutation({
   },
 });
 
+export const createSceneInternal = internalMutation({
+  args: {
+    chapterId: v.id("chapters"),
+    sceneNumber: v.number(),
+    slug: v.string(),
+    description: v.string(),
+    screenplayChunk: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("videoScenes", {
+      chapterId: args.chapterId,
+      sceneNumber: args.sceneNumber,
+      slug: args.slug,
+      description: args.description,
+      screenplayChunk: args.screenplayChunk,
+      status: "pending",
+      progress: 0,
+    });
+  },
+});
+
 export const updateSceneMetadataInternal = internalMutation({
   args: {
     sceneId: v.id("videoScenes"),

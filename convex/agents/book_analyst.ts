@@ -83,7 +83,7 @@ export const analyzeChapter = internalAction({
     const screenplay = "EXT. NEON ALLEY - NIGHT\nKael stares at the H200 cluster. The code glows in his eyes.";
     
     // 2. Scene Segmentation (POC: Seed a single scene)
-    await ctx.runMutation(internal.studio.updateSceneInternal, {
+    await ctx.runMutation(internal.studio.createSceneInternal, {
       chapterId: args.chapterId,
       sceneNumber: 1,
       slug: "EXT. NEON ALLEY - NIGHT",
