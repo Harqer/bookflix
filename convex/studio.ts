@@ -291,6 +291,16 @@ export const listJobsInternal = internalQuery({
   },
 });
 
+export const listAllJobsInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("render_jobs")
+      .order("desc")
+      .take(10);
+  },
+});
+
 export const getJobInternal = internalQuery({
   args: { jobId: v.id("render_jobs") },
   handler: async (ctx, args) => {
