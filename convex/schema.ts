@@ -91,9 +91,11 @@ export default defineSchema({
     content: v.string(),
     embedding: v.array(v.number()), // 1536-dim or 4096-dim NVIDIA embeddings
     metadata: v.any(),
-  }).vectorIndex("by_embedding", {
-    vectorField: "embedding",
-    dimensions: 1536,
-    filterFields: ["bookId"],
-  }),
+  })
+    .index("by_bookId", ["bookId"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+      filterFields: ["bookId"],
+    }),
 });

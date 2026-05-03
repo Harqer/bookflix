@@ -214,15 +214,35 @@ export const getWorldBible = query({
   handler: async (ctx: QueryCtx, args: { bookId: Id<"books"> }) => {
     const entries = await ctx.db
       .query("worldBibles")
-      .filter((q) => q.eq(q.field("bookId"), args.bookId))
+      .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
       .collect();
-    
+
     // Aggregate metadata into a single structure
-    const characters = entries.filter(e => e.metadata?.type === 'character').map(e => e.metadata);
-    const locations = entries.filter(e => e.metadata?.type === 'location').map(e => e.metadata);
-    const timeline = entries.filter(e => e.metadata?.type === 'timeline').map(e => e.metadata);
-    const themes = entries.filter(e => e.metadata?.type === 'theme').map(e => e.metadata);
-    
+    const characters: any[] = [];
+    const locations: any[] = [];
+    const timeline: any[] = [];
+    const themes: any[] = [];
+
+    for (const entry of entries) {
+      const metadata = entry.metadata;
+      if (!metadata) continue;
+
+      switch (metadata.type) {
+        case "character":
+          characters.push(metadata);
+          break;
+        case "location":
+          locations.push(metadata);
+          break;
+        case "timeline":
+          timeline.push(metadata);
+          break;
+        case "theme":
+          themes.push(metadata);
+          break;
+      }
+    }
+
     return { characters, locations, timeline, themes };
   },
 });
