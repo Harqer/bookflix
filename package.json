@@ -76,7 +76,8 @@
     "patchedDependencies": {
       "react-native@0.85.2": "patches/react-native@0.85.2.patch",
       "shell-quote@1.8.3": "patches/shell-quote@1.8.3.patch",
-      "cross-spawn@7.0.6": "patches/cross-spawn@7.0.6.patch"
+      "cross-spawn@7.0.6": "patches/cross-spawn@7.0.6.patch",
+      "convex@1.36.1": "patches/convex@1.36.1.patch"
     },
     "onlyBuiltDependencies": [
       "@clerk/shared",
