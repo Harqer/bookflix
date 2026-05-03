@@ -50,3 +50,13 @@ diff --git a/src/private/specs_DEPRECATED/components/AndroidDrawerLayoutNativeCo
    /**
     * Function called whenever the navigation view has been opened.
     */
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -184,7 +184,7 @@
+     "pretty-format": "^29.7.0",
+     "promise": "^8.3.0",
+-    "react-devtools-core": "^6.1.5",
++    "react-devtools-core": "^7.0.1",
+     "react-refresh": "^0.14.0",
+     "regenerator-runtime": "^0.13.2",
