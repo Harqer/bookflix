@@ -30,9 +30,8 @@ export const orchestrateFullFiringCycle = internalAction({
       // 🚀 PHASE 7: Web-Native Assembly (Remotion)
       await logger.info("⚛️ Phase 7: Mobile/Web Assembly (Remotion)...", traceId);
       // Logic: Dynamic captions, UI overlays, and social media cuts
-      await ctx.runAction(internal.agents.feature_assembler.assembleFeature, {
+      await ctx.runAction(internal.agents.feature_assembler.assembleChapterFeature, {
         chapterId: args.chapterId,
-        sceneId: args.sceneId,
       });
 
       // 🚀 PHASE 8: UX Injection (QML Bridge)
