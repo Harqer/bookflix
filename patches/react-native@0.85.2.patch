@@ -1,62 +1,12 @@
-diff --git a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
---- a/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
-+++ b/src/private/components/virtualview/VirtualViewExperimentalNativeComponent.js
-@@ -85,10 +85,6 @@
-    */
-   renderState: Int32,
- 
--  /**
--   * See `NativeModeChangeEvent`.
--   */
--  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
- }>;
- 
- // TODO: Rename to eliminate "Experimental" suffix in the name.
-diff --git a/src/private/components/virtualview/VirtualViewNativeComponent.js b/src/private/components/virtualview/VirtualViewNativeComponent.js
---- a/src/private/components/virtualview/VirtualViewNativeComponent.js
-+++ b/src/private/components/virtualview/VirtualViewNativeComponent.js
-@@ -85,10 +85,6 @@
-    */
-   renderState: Int32,
- 
--  /**
--   * See `NativeModeChangeEvent`.
--   */
--  onModeChange?: ?DirectEventHandler<NativeModeChangeEvent>,
- }>;
- 
- export default codegenNativeComponent<VirtualViewNativeProps>('VirtualView', {
-diff --git a/src/private/specs_DEPRECATED/components/AndroidDrawerLayoutNativeComponent.js b/src/private/specs_DEPRECATED/components/AndroidDrawerLayoutNativeComponent.js
---- a/src/private/specs_DEPRECATED/components/AndroidDrawerLayoutNativeComponent.js
-+++ b/src/private/specs_DEPRECATED/components/AndroidDrawerLayoutNativeComponent.js
-@@ -77,20 +77,6 @@
-     'unlocked',
-   >,
- 
--  /**
--   * Function called whenever there is an interaction with the navigation view.
--   */
--  onDrawerSlide?: ?DirectEventHandler<DrawerSlideEvent>,
--
--  /**
--   * Function called when the drawer state has changed. The drawer can be in 3 states:
--   * - Idle, meaning there is no interaction with the navigation view happening at the time
--   * - Dragging, meaning there is currently an interaction with the navigation view
--   * - Settling, meaning that there was an interaction with the navigation view, and the
--   * navigation view is now finishing its closing or opening animation
--   */
--  onDrawerStateChanged?: ?DirectEventHandler<DrawerStateEvent>,
--
-   /**
-    * Function called whenever the navigation view has been opened.
-    */
-diff --git a/package.json b/package.json
 --- a/package.json
 +++ b/package.json
-@@ -184,7 +184,7 @@
+@@ -152,7 +152,7 @@
+     "metro-source-map": "^0.84.0",
+     "nullthrows": "^1.1.1",
      "pretty-format": "^29.7.0",
      "promise": "^8.3.0",
 -    "react-devtools-core": "^6.1.5",
 +    "react-devtools-core": "^7.0.1",
      "react-refresh": "^0.14.0",
      "regenerator-runtime": "^0.13.2",
+     "scheduler": "0.27.0",
