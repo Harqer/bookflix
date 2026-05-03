@@ -24,17 +24,14 @@ export const orchestrateChapterProduction = internalAction({
       });
 
       // 2. Director Scout & Scene Distribution
-      const dna = await ctx.runQuery(internal.studio.getWorldBible, { bookId: args.bookId });
+      const book = await ctx.runQuery(internal.studio.getBookInternal, { bookId: args.bookId });
+      if (!book || !book.atmosphericDNA) throw new Error("Atmospheric DNA missing.");
+
       const brief = await ctx.runAction(internal.agents.director.orchestrateChapterProduction, {
         bookId: args.bookId,
         chapterId: args.chapterId,
         screenplay,
-        dna: {
-          theme: dna.theme,
-          mood: dna.mood,
-          texture: dna.texture,
-          era: dna.era,
-        },
+        dna: book.atmosphericDNA,
       });
 
       // 3. Parallel Scene Production Loop
