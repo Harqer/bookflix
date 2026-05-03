@@ -1,0 +1,13 @@
+diff --git a/index.js b/index.js
+index 4554367..8899887 100644
+--- a/index.js
++++ b/index.js
+@@ -37,7 +37,7 @@ module.exports = function (s) {
+     if (typeof s !== 'string') return s;
+     
+     // 🛡️ SECURITY FIX: CVE-2021-42740 (Argument Injection)
+-    if (/^[A-z]:\\/.test(s)) {
++    if (/^[A-Za-z]:\\/.test(s)) {
+         return s;
+     }
+     

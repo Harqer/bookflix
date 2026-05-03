@@ -30,7 +30,7 @@ export const unstable_settings = {
 };
 
 import * as SecureStore from "expo-secure-store";
-import { ClerkProvider, useAuth, useUser } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({

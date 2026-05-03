@@ -1,4 +1,4 @@
-import { useAuth as useClerkAuth, useUser, useOrganization } from "@clerk/clerk-expo";
+import { useAuth as useClerkAuth, useUser, useOrganization } from "@clerk/expo";
 import { useMemo } from "react";
 
 export function useAuth() {
