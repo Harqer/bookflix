@@ -16,38 +16,44 @@ export const orchestrateChapterProduction = internalAction({
   },
   handler: async (ctx, args) => {
     const traceId = args.chapterId;
-    await logger.info("🛰️ NIF: Initiating Sovereign Production Cycle...", traceId);
-
-    // 1. Narrative Analysis & Cinematic Scoping
-    const screenplay = await ctx.runAction(internal.agents.book_analyst.analyzeChapter, {
-      bookId: args.bookId,
-      chapterId: args.chapterId,
-    });
-
-    // 2. Director Scout & Scene Distribution
-    const dna = await ctx.runQuery(internal.studio.getWorldBible, { bookId: args.bookId });
-    const brief = await ctx.runAction(internal.agents.director.orchestrateDirectorLoop, {
-      bookId: args.bookId,
-      chapterId: args.chapterId,
-      screenplay,
-      dna,
-    });
-
-    // 3. Parallel Scene Production Loop
-    const scenes = await ctx.runQuery(internal.studio.listScenesInternal, { chapterId: args.chapterId });
-    
-    await Promise.all(scenes.map(async (scene) => {
-      // 🛰️ Full Firing Cycle (Sovereign Orchestration)
-      // Conductor: ComfyUI -> Houdini -> Maya -> Unreal (Luminous) -> Nuke
-      await ctx.runAction(internal.agents.master_orchestrator.orchestrateFullFiringCycle, {
+    try {
+      // 1. Narrative Analysis & Cinematic Scoping
+      const screenplay = await ctx.runAction(internal.agents.book_analyst.analyzeChapter, {
         bookId: args.bookId,
         chapterId: args.chapterId,
-        sceneId: scene._id,
-        directorBrief: brief,
       });
-    }));
 
-    await logger.info("✅ NIF: Sovereign Production Dispatched to Fleet", traceId);
+      // 2. Director Scout & Scene Distribution
+      const dna = await ctx.runQuery(internal.studio.getWorldBible, { bookId: args.bookId });
+      const brief = await ctx.runAction(internal.agents.director.orchestrateChapterProduction, {
+        bookId: args.bookId,
+        chapterId: args.chapterId,
+        screenplay,
+        dna: {
+          theme: dna.theme,
+          mood: dna.mood,
+          texture: dna.texture,
+          era: dna.era,
+        },
+      });
+
+      // 3. Parallel Scene Production Loop
+      const scenes = await ctx.runQuery(internal.studio.listScenesInternal, { chapterId: args.chapterId });
+      
+      await Promise.all(scenes.map(async (scene) => {
+        await ctx.runAction(internal.agents.master_orchestrator.orchestrateFullFiringCycle, {
+          bookId: args.bookId,
+          chapterId: args.chapterId,
+          sceneId: scene._id,
+          directorBrief: brief,
+        });
+      }));
+
+      await logger.info("✅ NIF: Sovereign Production Dispatched to Fleet", traceId);
+    } catch (err) {
+      await logger.error(`❌ NIF: Production Dispatch Failed: ${err}`, traceId);
+      throw err;
+    }
   },
 });
 
