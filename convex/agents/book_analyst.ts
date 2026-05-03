@@ -52,5 +52,20 @@ export const analyzeBook = internalAction({
       bookId: args.bookId,
       status: "scripting",
     });
+
+    // 3. Chapter Segmentation (POC: Seed a single chapter)
+    const chapterId = await ctx.runMutation(internal.studio.createChapterInternal, {
+      bookId: args.bookId,
+      chapterNumber: 1,
+      title: "The Awakening",
+      summary: "Kael discovers the sovereign code in the H200 cluster.",
+      status: "pending",
+    });
+
+    // 4. Trigger Chapter Firing Cycle
+    await ctx.runAction(internal.agents.nif_controller.orchestrateChapterProduction, {
+      bookId: args.bookId,
+      chapterId,
+    });
   },
 });
