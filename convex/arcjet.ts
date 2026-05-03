@@ -5,8 +5,8 @@ import arcjet, { shield, detectPromptInjection, fixedWindow } from "@arcjet/node
  * 🛡️ Enterprise Arcjet Protection (Global Scale)
  * Purpose: Edge-native security for millions of users.
  */
-const aj = process.env.ARCJET_API_KEY ? arcjet({
-  key: process.env.ARCJET_API_KEY,
+const aj = arcjet({
+  key: process.env.ARCJET_API_KEY!,
   rules: [
     shield({ mode: "LIVE" }),
     detectPromptInjection({ mode: "LIVE" }),
@@ -17,7 +17,7 @@ const aj = process.env.ARCJET_API_KEY ? arcjet({
       max: 1,
     }),
   ],
-}) : null;
+});
 
 export default aj;
 
@@ -42,12 +42,6 @@ export async function protectAction(
   const properties: any = {
     ...(prompt ? { contents: [prompt] } : {}),
   };
-
-  // 3. Skip if Arcjet is disabled
-  if (!aj) {
-    console.warn("⚠️ Security: Arcjet disabled (Missing API Key). Proceeding...");
-    return { isDenied: () => false };
-  }
 
   const decision = await aj.protect(request, properties);
 

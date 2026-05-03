@@ -149,17 +149,7 @@ export const orchestrateChapterProduction = internalAction({
       }
 
       // 2. High-Fidelity Cinematography via Claude 3.5 Sonnet
-      let brief;
-      if (!ANTHROPIC_API_KEY) {
-        await logger.warn("⚠️ Director: ANTHROPIC_API_KEY missing. Using POC Default Brief.", traceId);
-        brief = {
-          camera: { focalLength: 35, aperture: 2.8, motion: "pan_right" },
-          lighting: { temperature: 6500, intensity: 1.2, style: "cinematic" },
-          usdManifest: { stages: ["lighting", "cosmos", "maya"] }
-        };
-      } else {
-        brief = await fetchClaudeCinematography(ANTHROPIC_API_KEY, args.screenplay, args.dna);
-      }
+      const brief = await fetchClaudeCinematography(ANTHROPIC_API_KEY, args.screenplay, args.dna);
       
       // 3. Cache the brief for serverless orchestrators (Unreal/Maya)
       // We use the chapterId as the screenplayHash for direct lookup
