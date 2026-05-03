@@ -675,10 +675,10 @@ Book Content (1M tokens via Qwen2.5-1M)
     └─ Output: 1000+ visual prompts
     ↓
 [Video Producer Agent (Agent 5)]
-    ├─ Batch process via HunyuanVideo
-    ├─ Apply consistency checks
-    ├─ Assemble into sequences
-    └─ Output: Video clips
+    ├─ Batch process via LongVideoCat-LLM
+    ├─ Apply temporal consistency checks
+    ├─ Assemble into 1000+ frame sequences
+    └─ Output: Cinematic Video clips
     ↓
 [Video Editor]
     ├─ Assemble clips with transitions

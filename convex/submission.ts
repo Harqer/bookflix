@@ -22,7 +22,7 @@ export const submitBookProtected = action({
     if (!identity) throw new Error("Unauthorized");
 
     // --- 🛡️ ARCJET PROTECTION ---
-    await protectAction(identity.subject, `${args.title} ${args.author} ${args.rawText.substring(0, 1000)}`);
+    await protectAction(identity.subject, undefined, `${args.title} ${args.author} ${args.rawText.substring(0, 1000)}`);
 
     // --- ✅ AUTHORIZED: Triggering Production ---
     const result: any = await ctx.runMutation(internal.studio.submitBookInternal, {

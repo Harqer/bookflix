@@ -1,9 +1,11 @@
+"use node";
 import { v } from "convex/values";
 import { ActionCtx, internalAction } from "../_generated/server";
 import { internal, api } from "../_generated/api";
 import { withSentry } from "../lib/sentry";
 import { logger } from "../lib/observability";
 import { Id } from "../_generated/dataModel";
+import { protectAction } from "../arcjet";
 
 import { generateEmbedding } from "../lib/ai";
 import { tracedFetch } from "../lib/langsmith";
@@ -121,6 +123,10 @@ export const orchestrateChapterProduction = internalAction({
       const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 
       await logger.info("Director: Orchestrating Chapter Production", traceId);
+
+      // 🛡️ ARCJET: Prompt Injection Detection
+      const identity = await ctx.auth.getUserIdentity();
+      await protectAction(identity?.subject || args.bookId, undefined, args.screenplay.substring(0, 1000));
 
       // 1. 🛡️ Scalability: Sub-millisecond Redis Cache
       const cacheKey = `brief:${args.chapterId}`;

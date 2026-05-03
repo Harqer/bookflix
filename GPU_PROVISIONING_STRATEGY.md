@@ -141,30 +141,26 @@ def generate_scene(prompt, output_dir):
     pass
 ```
 
-#### Step 3: BookCinema Integration
-```typescript
 // server/gpu-cluster-client.ts
 export class GPUClusterClient {
-  private colabEndpoint: string; // From ngrok
-  private kaggleEndpoint: string; // From ngrok
+  private nimEndpoint: string; // Global Sovereign NIM Endpoint
 
-  async generateVideo(prompt: string, duration: number): Promise<string> {
-    const response = await fetch(`${this.colabEndpoint}/generate-video`, {
-      method: 'POST',
-      body: JSON.stringify({ prompt, duration })
-    });
-    return response.json();
+  constructor() {
+    this.nimEndpoint = process.env.NVIDIA_NIM_ENDPOINT || "https://api.bookcinema.ai/v1/nif";
   }
 
-  async generateScene(prompt: string, outputDir: string): Promise<string> {
-    const response = await fetch(`${this.kaggleEndpoint}/generate-scene`, {
+  async generateVideo(prompt: string, duration: number): Promise<string> {
+    const response = await fetch(`${this.nimEndpoint}/generate`, {
       method: 'POST',
-      body: JSON.stringify({ prompt, output_dir: outputDir })
+      headers: {
+        'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt, duration, model: "LongVideoCat-LLM" })
     });
     return response.json();
   }
 }
-```
 
 ### Week 2-3: Spot Instance Migration
 
@@ -182,13 +178,14 @@ cd LongCat-Video
 ./install.sh
 huggingface-cli download meituan-longcat/LongCat-Video --local-dir ./weights/LongCat-Video
 
-# Start API server
-python -m uvicorn server:app --host 0.0.0.0 --port 8000
+# Start NVIDIA NIM Microservice
+# The model is exposed as a scalable, load-balanced API endpoint on the H200 cluster.
+python -m nim_service.launch --model LongVideoCat-LLM --scale-target 0.8
 ```
 
 #### Step 2: Docker Containerization
 ```dockerfile
-# Dockerfile.longcat
+# Dockerfile.longvideocat-llm
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
 WORKDIR /app
@@ -198,7 +195,7 @@ RUN pip install torch==2.6.0+cu124 torchvision==0.21.0+cu124
 RUN git clone https://github.com/meituan-longcat/LongCat-Video
 WORKDIR /app/LongCat-Video
 RUN pip install -r requirements.txt
-RUN huggingface-cli download meituan-longcat/LongCat-Video --local-dir ./weights/LongCat-Video
+RUN huggingface-cli download meituan-longcat/LongVideoCat-7B --local-dir ./weights/LongVideoCat-7B
 
 COPY server.py .
 CMD ["python", "server.py"]

@@ -19,7 +19,7 @@ export const ingestVideo = action({
     if (!identity) throw new Error("Unauthorized");
 
     // --- 🛡️ ARCJET PROTECTION ---
-    await protectAction(identity.subject, args.fileName);
+    await protectAction(identity.subject, undefined, args.fileName);
 
     console.log(`[*] Ingesting video: ${args.fileName}`);
 

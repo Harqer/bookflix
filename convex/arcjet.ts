@@ -25,17 +25,20 @@ export default aj;
  * 🔒 Global Protection Helper
  * Ingests real client context from the edge.
  */
-export async function protectAction(clerkId: string, clientContext: { ip: string, headers: Record<string, string> }, prompt?: string) {
-  // 1. Construct Request Context
+export async function protectAction(
+  clerkId: string, 
+  clientContext?: { ip?: string, headers?: Record<string, string> }, 
+  prompt?: string
+) {
+  // 1. Construct Request Context with fallback defaults
   const request: any = {
-    ip: clientContext.ip,
-    method: clientContext.headers["method"] || "POST",
-    headers: clientContext.headers,
+    ip: clientContext?.ip || "127.0.0.1",
+    method: "POST",
+    headers: clientContext?.headers || {},
     fingerprint: clerkId,
   };
 
   // 2. Construct Rule Properties
-  // We use 'any' to bypass strict SDK type requirements for the prompt injection rule
   const properties: any = {
     ...(prompt ? { contents: [prompt] } : {}),
   };

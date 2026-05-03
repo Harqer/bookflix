@@ -2,7 +2,6 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { submitFeedback } from "./lib/langsmith";
-import { protectAction } from "./arcjet";
 import { logger } from "./lib/observability";
 
 /**
@@ -27,7 +26,15 @@ export const submitBook = httpAction(async (ctx, request) => {
       headers,
     };
 
-    await protectAction(identity.subject, clientContext, body.rawText);
+    const decision = await ctx.runAction(internal.actions.arcjet_security.verifyRequest, {
+      clerkId: identity.subject,
+      clientContext,
+      prompt: body.rawText,
+    });
+
+    if (!decision.allowed) {
+      return new Response("Access Denied: Security policy violation.", { status: 403 });
+    }
 
     // ✅ AUTHORIZED: Triggering Production Cycle
     const result = await ctx.runMutation(internal.studio.submitBookInternal, {
@@ -119,7 +126,21 @@ export const nvidiaCallback = httpAction(async (ctx, request) => {
       break;
 
     case "unreal_render":
-      await logger.info("🎮 Unreal: Render Callback Received", jobId);
+      await logger.info("🎮 Unreal: Render Callback Received. Handing off to Nuke...", jobId);
+      
+      // 🚀 Dispatch to Nuke for Final Mastering
+      await ctx.runAction(internal.agents.nuke_finisher.orchestrateNukeFinishing, {
+        bookId: job.bookId,
+        chapterId: job.chapterId!,
+        sceneId: job.sceneId!,
+        renderUrl: resultUrl, // Unreal output
+      });
+
+      // Once Nuke finishes (handled by another callback), it will trigger finalizeProduction
+      break;
+
+    case "nuke_mastering":
+      await logger.info("⚛️ Nuke: Mastering Complete. Finalizing Production.", jobId);
       await ctx.runAction(internal.agents.finisher.finalizeProduction, {
         bookId: job.bookId,
         chapterId: job.chapterId!,

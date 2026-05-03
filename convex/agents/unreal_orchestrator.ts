@@ -1,75 +1,91 @@
 "use node";
 import { v } from "convex/values";
 import { internalAction } from "../_generated/server";
-import { internal, api } from "../_generated/api";
+import { internal } from "../_generated/api";
 import { logger } from "../lib/observability";
 
 /**
- * 🚀 Enterprise Unreal Orchestrator (Global Scale Edition)
- * Purpose: Dynamically dispatches cinematic jobs to a serverless GPU fleet.
- * Infrastructure: Designed for CoreWeave / Modal / AWS G6 instances.
+ * 🎮 Unreal Engine 5.7.4 Orchestrator (Global Cloud Fleet)
+ * Purpose: Headless GPU rendering via Remote Control API & Luminous Plugin.
+ * Target: Millions of users via distributed serverless workers.
  */
 export const orchestrateUnrealProduction = internalAction({
   args: {
     bookId: v.id("books"),
     chapterId: v.id("chapters"),
     sceneId: v.id("videoScenes"),
-    directorBrief: v.any(),
+    directorBrief: v.any(), // High-fidelity screenplay + cinematography DNA
+    mapPath: v.optional(v.string()), // Path to the Luminous Master Level
+    snapshotId: v.optional(v.string()), // specific World State Snapshot
   },
   handler: async (ctx, args) => {
     const traceId = args.sceneId;
-    await logger.info("🚀 Enterprise: Provisioning Unreal Worker Instance...", traceId);
+    await logger.info("🎮 Unreal: Initializing Headless Production...", traceId);
 
-    // 1. Request a Dynamic Worker from the GPU Orchestrator
-    // This calls your cluster's Load Balancer to find an available UE 5.7.4 node
-    const dispatcherUrl = process.env.GPU_DISPATCHER_URL; 
-    if (!dispatcherUrl) throw new Error("GPU Dispatcher URL not configured.");
+    const gpuDispatcherUrl = process.env.GPU_DISPATCHER_URL;
+    const gpuSecret = process.env.GPU_CLUSTER_SECRET;
+
+    if (!gpuDispatcherUrl || !gpuSecret) {
+      throw new Error("Enterprise GPU Infrastructure not provisioned (Missing URL/Secret).");
+    }
 
     try {
-      const dispatchResponse = await fetch(`${dispatcherUrl}/provision`, {
+      // 🚀 Dispatched to Remote Control API (Hydra/Ludus/Luminous Native)
+      const response = await fetch(`${gpuDispatcherUrl}/dispatch`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${process.env.GPU_CLUSTER_SECRET}` },
+        headers: {
+          "Content-Type": "application/json",
+          "X-GPU-Cluster-Secret": gpuSecret,
+          "X-Ludus-Version": "13.1",
+          "X-Luminous-Enabled": "true", // ⚡ Lighting Hardening
+        },
         body: JSON.stringify({
-          engineVersion: "5.7.4",
-          plugin: "LudusAI-13.1",
-          jobType: "cinematic_render"
+          sceneId: args.sceneId,
+          // 🗺️ Level Snapshot Logic
+          level: args.mapPath || "/Game/Cinematics/MasterLevels/Luminous_Studio_01",
+          snapshot: args.snapshotId || "Default_Production_State",
+          
+          // 🧠 Narrative Injection
+          brief: args.directorBrief,
+          
+          // 🎥 Cinematic Config (Luminous Native)
+          config: {
+            renderEngine: "Lumen",
+            rayTracing: true,
+            postProcess: {
+              exposure: args.directorBrief.cinematography.exposure,
+              colorGrading: args.directorBrief.cinematography.toneMap,
+              luminousBloom: true,
+            },
+            resolution: "4K",
+            fps: 24,
+          },
+          
+          callbackUrl: `${process.env.CONVEX_SITE_URL}/nvidia-callback`,
         })
       });
 
-      const { workerUrl, workerId } = await dispatchResponse.json();
-      await logger.info(`🚀 Enterprise: Worker ${workerId} Assigned`, traceId);
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`GPU Dispatch Failure: ${error}`);
+      }
 
-      // 2. Dispatch the Production Brief to the assigned worker
-      const renderResponse = await fetch(`${workerUrl}/RemoteControl/Object/Call`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          objectPath: "/Game/Cinematics/MasterDirector.MasterDirector_C",
-          functionName: "LudusHydraSolve",
-          parameters: {
-            UsdManifest: JSON.stringify(args.directorBrief.usdManifest || {}),
-            AtmosphericDNA: JSON.stringify(args.directorBrief.dna || {}),
-            SceneId: args.sceneId,
-          }
-        })
-      });
-
-      if (!renderResponse.ok) throw new Error(`Render Dispatch Failed on Worker ${workerId}`);
-
-      // 3. Track the Job in our sovereign database
+      const { jobId } = await response.json();
+      
+      // Register the production job
       await ctx.runMutation(internal.studio.createRenderJobInternal, {
         bookId: args.bookId,
         chapterId: args.chapterId,
+        sceneId: args.sceneId,
         type: "unreal_render",
-        config: {
-          sceneId: args.sceneId,
-          workerId,
-          cluster: "coreweave-us-east"
-        }
+        config: { jobId, level: args.mapPath },
       });
 
+      await logger.info(`✅ Unreal: Job Dispatched to Global Fleet (Job: ${jobId})`, traceId);
+      return { jobId };
+
     } catch (err) {
-      await logger.error("❌ Enterprise: Orchestration Failed", traceId, { error: String(err) });
+      await logger.error("❌ Unreal: Production Dispatch Failed", traceId, { error: String(err) });
       throw err;
     }
   },
