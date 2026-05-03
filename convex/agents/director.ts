@@ -149,7 +149,9 @@ export const orchestrateChapterProduction = internalAction({
       }
 
       // 2. High-Fidelity Cinematography via Claude 3.5 Sonnet
+      console.log("🛰️ Director: Starting Claude Synthesis with Key:", ANTHROPIC_API_KEY?.substring(0, 8) + "...");
       const brief = await fetchClaudeCinematography(ANTHROPIC_API_KEY, args.screenplay, args.dna);
+      console.log("🛰️ Director: Claude Synthesis Complete. Brief Received.");
       
       // 3. Cache the brief for serverless orchestrators (Unreal/Maya)
       // We use the chapterId as the screenplayHash for direct lookup

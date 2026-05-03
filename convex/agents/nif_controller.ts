@@ -30,6 +30,7 @@ export const orchestrateChapterProduction = internalAction({
       const book = await ctx.runQuery(internal.studio.getBookInternal, { bookId: args.bookId });
       if (!book || !book.atmosphericDNA) throw new Error("Atmospheric DNA missing.");
 
+      console.log("🛰️ NIF: Triggering Director Agent for Technical Scoping...");
       const brief = await ctx.runAction(internal.agents.director.orchestrateChapterProduction, {
         bookId: args.bookId,
         chapterId: args.chapterId,
@@ -37,7 +38,7 @@ export const orchestrateChapterProduction = internalAction({
         dna: book.atmosphericDNA,
       });
 
-      await logger.info("🛰️ NIF: Director Synthesis Complete. Brief Received.", traceId);
+      console.log("🛰️ NIF: Director Synthesis Complete.");
 
       // 3. Parallel Scene Production Loop
       await logger.info("🛰️ NIF: Distributing Scene Production to Fleet...", traceId);
