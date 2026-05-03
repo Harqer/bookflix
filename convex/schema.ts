@@ -89,7 +89,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_userId", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_bookId", ["bookId"]),
 
   // 🧠 World Bible (Vector Store)
   // Advanced 2026 Feature: Native Vector Search inside Convex
