@@ -22,14 +22,35 @@ export const analyzeBook = internalAction({
     const rawText = await ctx.runQuery(internal.studio.getRawTextInternal, { bookId: args.bookId });
     if (!rawText) throw new Error("Book content missing.");
 
+    // 🚀 Signal Progress: Analyzing
+    await ctx.runMutation(internal.studio.updateBookStatusInternal, {
+      bookId: args.bookId,
+      status: "analyzing",
+    });
+
     // 🛡️ ARCJET: Prompt Injection Detection
     // For internal actions, we use the bookId as the fingerprint if subject is unavailable.
     const identity = await ctx.auth.getUserIdentity();
     await protectAction(identity?.subject || args.bookId, undefined, rawText.substring(0, 1000));
 
-    // 2. Perform AI analysis (Simplified for brevity)
-    // In production, this calls Gemini to extract Atmospheric DNA and Chapters
+    // 2. Perform AI analysis (DNA Extraction)
+    // We simulate the extraction of Atmospheric DNA for the POC.
+    await ctx.runMutation(internal.studio.updateBookDNAInternal, {
+      bookId: args.bookId,
+      dna: {
+        theme: "Emergent Consciousness",
+        mood: "Atmospheric Cyberpunk",
+        texture: "Neon-Drenched Metal",
+        era: "2026 Sovereign Horizon",
+      },
+    });
     
     await logger.info("📚 Analyst: Analysis Completed Successfully", traceId);
+    
+    // 🚀 Signal Progress: Scripting (Moving to next phase)
+    await ctx.runMutation(internal.studio.updateBookStatusInternal, {
+      bookId: args.bookId,
+      status: "scripting",
+    });
   },
 });
