@@ -53,12 +53,22 @@ async function fetchClaudeCinematography(apiKey: string, screenplay: string, dna
   }, { agent: "director_claude" });
 
   const data = await response.json();
+  if (!data.content || data.content.length === 0) throw new Error("Claude returned empty response");
+  
   const rawText = data.content[0].text;
-  return JSON.parse(rawText);
+  try {
+    // Robust JSON extraction
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+  } catch (err) {
+    await logger.error("Director: Failed to parse Claude JSON", "parsing", { rawText });
+    throw new Error("Invalid technical brief format");
+  }
 }
 
 // --- Redis Cache Utility (Upstash) ---
 async function getRedisCache(key: string) {
+  if (!process.env.UPSTASH_REDIS_REST_URL) return null;
   const url = `${process.env.UPSTASH_REDIS_REST_URL}/get/${key}`;
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` }
@@ -68,6 +78,7 @@ async function getRedisCache(key: string) {
 }
 
 async function setRedisCache(key: string, value: any) {
+  if (!process.env.UPSTASH_REDIS_REST_URL) return;
   const url = `${process.env.UPSTASH_REDIS_REST_URL}/set/${key}`;
   await fetch(url, {
     method: "POST",
