@@ -94,7 +94,8 @@
       "esbuild": "^0.25.6",
       "@esbuild/linux-x64": "^0.25.6",
       "@esbuild/darwin-arm64": "^0.25.6",
-      "react-devtools-core": "^7.0.1"
+      "react-devtools-core": "^7.0.1",
+      "minimatch": "^10.2.5"
     }
   }
 }
