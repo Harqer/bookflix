@@ -69,3 +69,24 @@ export const analyzeBook = internalAction({
     });
   },
 });
+
+export const analyzeChapter = internalAction({
+  args: {
+    bookId: v.id("books"),
+    chapterId: v.id("chapters"),
+  },
+  handler: async (ctx, args) => {
+    const traceId = args.chapterId;
+    await logger.info("📚 Analyst: Starting Chapter Screenplay Generation...", traceId);
+
+    // Simulated Screenplay Generation for POC
+    const screenplay = "EXT. NEON ALLEY - NIGHT\nKael stares at the H200 cluster. The code glows in his eyes.";
+    
+    await ctx.runMutation(internal.studio.updateChapterInternal, {
+      chapterId: args.chapterId,
+      status: "scripting_complete",
+    });
+
+    return screenplay;
+  },
+});

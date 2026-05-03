@@ -187,7 +187,7 @@ export const submitBookInternal = internalMutation({
   },
 });
 
-export const getWorldBible = query({
+export const getWorldBible = internalQuery({
   args: { bookId: v.id("books") },
   handler: async (ctx, args) => {
     const entries = await ctx.db
