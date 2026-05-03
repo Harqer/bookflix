@@ -2,6 +2,12 @@ import { Platform } from "react-native";
 import { getApiBaseUrl } from "@/constants/oauth";
 import * as Auth from "./auth";
 
+const sanitizeUrl = (url: string) =>
+  url.replace(
+    /([?&](code|state|sessionToken|app_session_id)=)[^&]+/g,
+    (match, p1) => p1 + "[REDACTED]",
+  );
+
 type ApiResponse<T> = {
   data?: T;
   error?: string;
@@ -20,7 +26,7 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
   if (Platform.OS !== "web") {
     const sessionToken = await Auth.getSessionToken();
     console.log("[API] apiCall:", {
-      endpoint,
+      endpoint: sanitizeUrl(endpoint),
       hasToken: !!sessionToken,
       method: options.method || "GET",
     });
@@ -29,7 +35,11 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
       console.log("[API] Authorization header added");
     }
   } else {
-    console.log("[API] apiCall:", { endpoint, platform: "web", method: options.method || "GET" });
+    console.log("[API] apiCall:", {
+      endpoint: sanitizeUrl(endpoint),
+      platform: "web",
+      method: options.method || "GET",
+    });
   }
 
   const baseUrl = getApiBaseUrl();
@@ -37,7 +47,7 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
   const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const url = baseUrl ? `${cleanBaseUrl}${cleanEndpoint}` : endpoint;
-  console.log("[API] Full URL:", url);
+  console.log("[API] Full URL:", sanitizeUrl(url));
 
   try {
     console.log("[API] Making request...");
@@ -99,7 +109,7 @@ export async function exchangeOAuthCode(
   // Use GET with query params
   const params = new URLSearchParams({ code, state });
   const endpoint = `/api/oauth/mobile?${params.toString()}`;
-  console.log("[API] Calling OAuth mobile endpoint:", endpoint);
+  console.log("[API] Calling OAuth mobile endpoint:", sanitizeUrl(endpoint));
   const result = await apiCall<{ app_session_id: string; user: any }>(endpoint);
 
   // Convert app_session_id to sessionToken for compatibility
@@ -107,7 +117,6 @@ export async function exchangeOAuthCode(
   console.log("[API] OAuth exchange result:", {
     hasSessionToken: !!sessionToken,
     hasUser: !!result.user,
-    sessionToken: sessionToken ? `${sessionToken.substring(0, 50)}...` : null,
   });
 
   return {
