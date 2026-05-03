@@ -4,6 +4,7 @@
 data "infisical_secrets" "studio" {
   env_slug   = "prod"
   workspace_id = var.infisical_project_id
+  folder_path = "/"
 }
 
 # The Spacelift Context (Source of Truth for Orchestration)

@@ -3,8 +3,101 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useVideoPlayer, VideoView } from "expo-video";
 
 type ViewMode = "screenplay" | "scenes";
+
+function SceneVideo({ 
+  videoUrl, 
+  startTime, 
+  endTime, 
+  thumbnail 
+}: { 
+  videoUrl: string; 
+  startTime?: number; 
+  endTime?: number; 
+  thumbnail?: string;
+}) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const player = useVideoPlayer(videoUrl, (p) => {
+    p.loop = false;
+    p.autoplay = false;
+    
+    // Set narrative bounds from metadata
+    if (startTime !== undefined) {
+      p.currentTime = startTime;
+    }
+  });
+
+  // 🛡️ Playback Guardrail (CodeRabbit Audit Fix)
+  // Ensures precisely timed narrative segments by pausing at endTime
+  React.useEffect(() => {
+    if (endTime === undefined) return;
+    
+    // We poll every 100ms for high-precision narrative boundaries
+    const subscription = player.addListener('timeUpdate', (event) => {
+      if (event.currentTime >= endTime) {
+        player.pause();
+      }
+    });
+    
+    return () => subscription.remove();
+  }, [player, endTime]);
+
+  if (!isPlaying) {
+    return (
+      <TouchableOpacity 
+        onPress={() => {
+          setIsPlaying(true);
+          player.play();
+        }}
+        activeOpacity={0.9}
+        style={{ width: "100%", height: 220, position: 'relative' }}
+      >
+        <Image 
+          source={{ uri: thumbnail || "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop" }} 
+          style={{ width: "100%", height: "100%" }}
+          resizeMode="cover"
+        />
+        <View 
+          style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            backgroundColor: 'rgba(0,0,0,0.3)', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}
+        >
+          <View 
+            style={{ 
+              width: 60, 
+              height: 60, 
+              borderRadius: 30, 
+              backgroundColor: 'rgba(229, 9, 20, 0.9)', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 10,
+            }}
+          >
+            <IconSymbol name="play.fill" size={30} color="#FDF6EE" />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <VideoView
+      style={{ width: "100%", height: 220 }}
+      player={player}
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  );
+}
 
 export default function ChapterScreen() {
   const colors = useColors();
@@ -168,8 +261,15 @@ export default function ChapterScreen() {
                     borderColor: colors.border,
                   }}
                 >
-                  {/* Keyframe image */}
-                  {scene.keyframeImageUrl ? (
+                  {/* Visual Content: Video (Vercel Blob) > Keyframe (Convex) */}
+                  {scene.videoUrl ? (
+                    <SceneVideo 
+                      videoUrl={scene.videoUrl} 
+                      startTime={scene.startTime}
+                      endTime={scene.endTime}
+                      thumbnail={scene.keyframeImageUrl}
+                    />
+                  ) : scene.keyframeImageUrl ? (
                     <Image
                       source={{ uri: scene.keyframeImageUrl }}
                       style={{ width: "100%", height: 200 }}
@@ -185,7 +285,7 @@ export default function ChapterScreen() {
                         justifyContent: "center",
                       }}
                     >
-                      {scene.status === "generating_keyframe" ? (
+                      {scene.status === "generating_video" || scene.status === "generating_keyframe" ? (
                         <ActivityIndicator color={colors.primary} />
                       ) : (
                         <IconSymbol name="photo.fill" size={32} color={colors.muted} />

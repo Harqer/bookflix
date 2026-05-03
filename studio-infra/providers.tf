@@ -19,7 +19,7 @@ terraform {
       version = "~> 5.0"
     }
     neon = {
-      source  = "kisler/neon"
+      source  = "terraform-community-providers/neon"
       version = "~> 0.1"
     }
     cloudflare = {
@@ -36,7 +36,11 @@ provider "infisical" {
   client_secret = var.infisical_client_secret
 }
 
-provider "spacelift" {}
+provider "spacelift" {
+  api_key_endpoint = var.spacelift_api_endpoint
+  api_key_id       = var.spacelift_api_key_id
+  api_key_secret   = var.spacelift_api_key_secret
+}
 provider "vercel" {
   api_token = var.vercel_api_token
 }
@@ -46,7 +50,7 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 provider "neon" {
-  api_key = var.neon_api_key
+  token = var.neon_api_key
 }
 provider "cloudflare" {
   api_token = var.cloudflare_api_token

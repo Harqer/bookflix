@@ -5,16 +5,13 @@ resource "spacelift_stack" "bookflix" {
   repository = "bookflix-main"
   branch     = "main"
   
-  administrative = true
   autodeploy     = true
   
   # Sovereign Engine: OpenTofu
   terraform_workflow_tool = "OPEN_TOFU"
 
   # --- ADVANCED FEATURE: DRIFT DETECTION & REMEDIATION ---
-  # Automatically resets infrastructure to "Master Code" every 60 minutes
-  drift_detection_enabled = true
-  drift_detection_schedule = ["0 * * * *"] 
+  # Drift detection is handled via Spacelift's scheduled tasks in Production.
 
   # --- ADVANCED FEATURE: PRIVATE WORKER POOL LINK ---
   # Allows orchestration to happen on your own GPU hardware

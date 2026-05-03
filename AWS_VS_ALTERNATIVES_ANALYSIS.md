@@ -255,7 +255,7 @@ CloudFront Distribution
     "environment": [
       {
         "name": "LONGFORMVIDEOCAT_API_KEY",
-        "value": "ak_2UN4RJ2qP4WB3Sf6B914S20j81N2d"
+        "value": "your_longformvideocat_api_key_here"
       }
     ]
   }
@@ -331,7 +331,7 @@ python -m uvicorn server:app --host 0.0.0.0 --port 8001 &
 ```bash
 export LONGFORMVIDEOCAT_ENDPOINT=http://localhost:8000
 export MATRIX3D_ENDPOINT=http://localhost:8001
-export LONGFORMVIDEOCAT_API_KEY=ak_2UN4RJ2qP4WB3Sf6B914S20j81N2d
+export LONGFORMVIDEOCAT_API_KEY=your_longformvideocat_api_key_here
 
 # Start BookCinema orchestration
 node dist/index.js

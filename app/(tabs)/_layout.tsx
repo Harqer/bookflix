@@ -60,31 +60,31 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="library"
+        name="videos"
         options={{
-          title: "Library",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="books.vertical.fill" color={color} />,
+          title: "My Videos",
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="play.rectangle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="submit"
         options={{
-          title: "Submit",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
+          title: "Production",
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="plus.circle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="world-bible"
+        name="schedule"
         options={{
-          title: "World Bible",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="globe.americas.fill" color={color} />,
+          title: "Schedule Post",
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="calendar.badge.plus" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="pricing"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gearshape.fill" color={color} />,
+          title: "Pricing",
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="creditcard.fill" color={color} />,
         }}
       />
     </Tabs>

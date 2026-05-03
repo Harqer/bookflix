@@ -93,9 +93,12 @@ const tokenCache = {
   },
 };
 
+import { useSyncUser } from "@/hooks/use-sync-user";
+
 // 🛡️ Sentry Identity Sync: Link Clerk User to Sentry Events
 function SentryIdentitySync() {
   const { user } = useUser();
+  useSyncUser(); // 🔄 Synchronous check & sync to Neon
   
   useEffect(() => {
     if (user) {

@@ -9,13 +9,16 @@ import { v } from "convex/values";
 export default defineSchema({
   users: defineTable({
     clerkId: v.string(),
+    tokenIdentifier: v.string(),
     name: v.optional(v.string()),
     email: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
     tier: v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise")),
     credits: v.number(),
     organizationId: v.optional(v.string()),
     lastSignedIn: v.number(), // Timestamp
-  }).index("by_clerkId", ["clerkId"]),
+  }).index("by_clerkId", ["clerkId"])
+    .index("by_token", ["tokenIdentifier"]),
 
   books: defineTable({
     userId: v.string(),
@@ -65,6 +68,10 @@ export default defineSchema({
     sceneNumber: v.number(),
     slugline: v.optional(v.string()),
     storageId: v.optional(v.id("_storage")), // Native Convex File Storage
+    videoUrl: v.optional(v.string()), // 🚀 Vercel Blob Storage URL
+    startTime: v.optional(v.number()), // For metadata-aware clipping
+    endTime: v.optional(v.number()), // For metadata-aware clipping
+    captionUrl: v.optional(v.string()), // Deepgram generated captions
     cameraParams: v.optional(v.any()), // JSON representation of CameraControlState
     status: v.string(), // pending, complete
   }).index("by_chapterId", ["chapterId"]),
@@ -96,4 +103,12 @@ export default defineSchema({
     dimensions: 1536,
     filterFields: ["bookId"],
   }),
+
+  // 🛡️ Scalability: Semantic Brief Cache
+  brief_cache: defineTable({
+    dnaHash: v.string(), // Hashed Atmospheric DNA
+    screenplayHash: v.string(), // Hashed Screenplay snippet
+    brief: v.any(), // The generated USD brief
+    createdAt: v.number(),
+  }).index("by_dna_screenplay", ["dnaHash", "screenplayHash"]),
 });

@@ -52,7 +52,7 @@ export default function LibraryScreen() {
         }}
       >
         <Text style={{ color: colors.foreground, fontSize: 26, fontWeight: "800", marginBottom: 14 }}>
-          My Library
+          My Videos
         </Text>
 
         {/* Search */}

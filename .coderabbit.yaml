@@ -1,0 +1,37 @@
+# 🐰 CodeRabbit Enterprise Configuration
+# Project: BookCinema Studio
+# Strategy: Pre-flight Architectural Audit & Security Guardrails
+
+# 🎯 Focus Areas
+reviews:
+  # Review only changed files in the feature branch
+  path_filters:
+    - "convex/**/*"
+    - "app/**/*"
+    - "lib/**/*"
+  
+  # Ignore generated files to reduce noise
+  exclude_path_filters:
+    - "convex/_generated/**/*"
+    - "node_modules/**/*"
+    - ".next/**/*"
+
+# 🛠️ Technical Context
+# This tells CodeRabbit what stack we are using for smarter reviews
+context:
+  - "This is a Convex-native backend with a Next.js 16 frontend."
+  - "Security: All submissions MUST use the Arcjet protectAction helper."
+  - "Observability: All AI actions MUST use the enterprise logger with traceIds."
+  - "Architecture: Follow the Sovereign NIF Controller pattern for agents."
+
+# 🤖 AI Review Logic
+instructions:
+  - "Flag any Convex mutation that does not use the internalMutation type for system-level logic."
+  - "Ensure all Remotion Lambda calls include the serveUrl and correct region."
+  - "Check for any hardcoded secrets (AWS, Deepgram, Arcjet) and suggest moving them to Infisical/Environment variables."
+  - "Verify that all agent actions have appropriate error handling and logging."
+
+# ⚡ Performance Audit
+performance:
+  - "Identify any N+1 query patterns in Convex queries."
+  - "Check for large data transfers in action parameters that could hit Convex limits."

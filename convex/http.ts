@@ -1,72 +1,147 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { submitFeedback } from "./lib/langsmith";
+import { protectAction } from "./arcjet";
+import { logger } from "./lib/observability";
 
 /**
- * 📡 Convex HTTP Webhooks
- * The 2026 "Callback" architecture for NVIDIA NIMs.
+ * 🚀 Enterprise HTTP API (Global Scale)
+ * Entry point for secure book submissions and remote render callbacks.
  */
-const http = httpRouter();
 
-http.route({
+export const submitBook = httpAction(async (ctx, request) => {
+  try {
+    const body = await request.json();
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return new Response("Unauthorized", { status: 401 });
+
+    // 🛡️ ARCJET: Global Protection with Real Client Context
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
+    const clientContext = {
+      ip: request.headers.get("x-forwarded-for") || request.headers.get("cf-connecting-ip") || "unknown",
+      headers,
+    };
+
+    await protectAction(identity.subject, clientContext, body.rawText);
+
+    // ✅ AUTHORIZED: Triggering Production Cycle
+    const result = await ctx.runMutation(internal.studio.submitBookInternal, {
+      userId: identity.subject,
+      title: body.title,
+      author: body.author,
+      genre: body.genre,
+      rawText: body.rawText,
+      productionStyle: body.productionStyle,
+      tone: body.tone,
+    });
+
+    return new Response(JSON.stringify(result), { 
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+
+  } catch (err: any) {
+    await logger.error(err, "http-submission-failure");
+    return new Response(err.message, { status: 403 });
+  }
+});
+
+export const nvidiaCallback = httpAction(async (ctx, request) => {
+  // 🛡️ Edge Security: Cloudflare Token Verification
+  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
+  const authResponse = await fetch("https://api.cloudflare.com/client/v4/user/tokens/verify", {
+    headers: { Authorization: `Bearer ${cfToken}` }
+  });
+  const authData = await authResponse.json();
+  
+  if (!authData.success) {
+    return new Response("Edge Security Failure", { status: 403 });
+  }
+
+  const { jobId, status, resultUrl, progress } = await request.json();
+
+  // 1. Update Job Status
+  await ctx.runMutation(internal.studio.updateJobStatusInternal, {
+    jobId,
+    status: status === "success" ? "completed" : "failed",
+    progress: progress ?? 100,
+  });
+
+  if (status !== "success") return new Response("OK");
+
+  // 2. Sequential Pipeline State Machine
+  const job = await ctx.runQuery(internal.studio.getJobInternal, { jobId });
+  if (!job) return new Response("OK");
+
+  switch (job.type) {
+    case "cosmos":
+      await ctx.runAction(internal.agents.comfy_refiner.orchestrateVisualRefinement, {
+        bookId: job.bookId,
+        chapterId: job.chapterId!,
+        sceneId: job.sceneId!,
+        baseVisualUrl: resultUrl,
+      });
+      break;
+
+    case "comfyui_refinement":
+      const verification = await ctx.runAction(internal.agents.critic.verifyCinematicIntegrity, {
+        sceneId: job.sceneId!,
+        renderUrl: resultUrl,
+      });
+
+      await submitFeedback(jobId, verification.score, verification.status);
+
+      if (verification.score > 0.85) {
+        await ctx.runAction(internal.agents.feature_assembler.assembleChapterFeature, {
+          bookId: job.bookId,
+          chapterId: job.chapterId!,
+        });
+      }
+
+      await ctx.runAction(internal.agents.maya_animator.orchestrateMayaAnimation, {
+        bookId: job.bookId,
+        chapterId: job.chapterId!,
+        sceneId: job.sceneId!,
+        usdManifest: job.config.usd,
+      });
+      break;
+
+    case "maya_animation":
+      await ctx.runAction(internal.agents.finisher.finalizeProduction, {
+        bookId: job.bookId,
+        chapterId: job.chapterId!,
+      });
+      break;
+
+    case "unreal_render":
+      await logger.info("🎮 Unreal: Render Callback Received", jobId);
+      await ctx.runAction(internal.agents.finisher.finalizeProduction, {
+        bookId: job.bookId,
+        chapterId: job.chapterId!,
+      });
+      break;
+  }
+
+  return new Response("OK");
+});
+
+const router = httpRouter();
+
+router.route({
+  path: "/submit",
+  method: "POST",
+  handler: submitBook,
+});
+
+router.route({
   path: "/nvidia-callback",
   method: "POST",
-  handler: httpAction(async (ctx, request) => {
-    const signature = request.headers.get("X-Worker-Secret");
-    if (signature !== process.env.EXTERNAL_WORKER_SECRET) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
-    const body = await request.json() as { 
-      jobId: any; 
-      sceneId?: any; 
-      storageId?: string; 
-      status?: string;
-      progress?: number;
-    };
-    
-    const { jobId, sceneId, storageId, status, progress } = body;
-
-    // 🌊 Atomic State Update for Job
-    await ctx.runMutation(internal.studio.updateJobStatusInternal, {
-      jobId,
-      status: status || "complete",
-      progress: progress ?? 100,
-    });
-
-    // 🎬 Link Asset to Scene if provided
-    if (sceneId && storageId) {
-      await ctx.runMutation(internal.studio.updateSceneInternal, {
-        sceneId,
-        storageId: storageId as any,
-        status: "complete",
-      });
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { 
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json"
-      },
-    });
-  }),
+  handler: nvidiaCallback,
 });
 
-// Handle CORS Preflight for production clusters
-http.route({
-  path: "/nvidia-callback",
-  method: "OPTIONS",
-  handler: httpAction(async (ctx, request) => {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
-    });
-  }),
-});
-
-export default http;
+export default router;
