@@ -124,6 +124,13 @@ export const getRawTextInternal = internalQuery({
   },
 });
 
+export const getBookInternal = internalQuery({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.bookId);
+  },
+});
+
 export const getBook = query({
   args: { id: v.id("books") },
   handler: async (ctx, args) => {
