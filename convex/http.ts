@@ -128,12 +128,10 @@ export const nvidiaCallback = httpAction(async (ctx, request) => {
     case "unreal_render":
       await logger.info("🎮 Unreal: Render Callback Received. Handing off to Nuke...", jobId);
       
-      // 🚀 Dispatch to Nuke for Final Mastering
-      await ctx.runAction(internal.agents.nuke_finisher.orchestrateNukeFinishing, {
+      // 🚀 Dispatch to Finisher for Final Mastering
+      await ctx.runAction(internal.agents.finisher.finalizeProduction, {
         bookId: job.bookId,
         chapterId: job.chapterId!,
-        sceneId: job.sceneId!,
-        renderUrl: resultUrl, // Unreal output
       });
 
       // Once Nuke finishes (handled by another callback), it will trigger finalizeProduction

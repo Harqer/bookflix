@@ -31,6 +31,7 @@ export const orchestrateFullFiringCycle = internalAction({
       await logger.info("⚛️ Phase 7: Mobile/Web Assembly (Remotion)...", traceId);
       // Logic: Dynamic captions, UI overlays, and social media cuts
       await ctx.runAction(internal.agents.feature_assembler.assembleChapterFeature, {
+        bookId: args.bookId,
         chapterId: args.chapterId,
       });
 

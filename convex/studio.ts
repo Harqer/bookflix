@@ -259,6 +259,7 @@ export const getChapterById = query({
 export const createRenderJobInternal = internalMutation({
   args: {
     chapterId: v.optional(v.id("chapters")),
+    sceneId: v.optional(v.id("videoScenes")),
     bookId: v.id("books"),
     type: v.string(),
     config: v.any(),
@@ -271,6 +272,7 @@ export const createRenderJobInternal = internalMutation({
       userId: book.userId,
       bookId: args.bookId,
       chapterId: args.chapterId,
+      sceneId: args.sceneId,
       type: args.type,
       config: args.config,
       status: "pending",

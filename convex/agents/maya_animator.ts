@@ -21,7 +21,7 @@ export const orchestrateMayaAnimation = internalAction({
     await logger.info("🏗️ Maya: Orchestrating Technical Animation...", traceId);
 
     // 1. Fetch World Bible for character rig references
-    const bible = await ctx.runQuery(api.studio.getWorldBible, { bookId: args.bookId });
+    const bible = await ctx.runQuery(internal.studio.getBookInternal, { bookId: args.bookId });
     
     // 2. Queue Maya Render Job
     await ctx.runMutation(internal.studio.createRenderJobInternal, {

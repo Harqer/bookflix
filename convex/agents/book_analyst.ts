@@ -63,10 +63,12 @@ export const analyzeBook = internalAction({
     });
 
     // 4. Trigger Chapter Firing Cycle
+    console.log("📚 Analyst: Triggering NIF Controller for Chapter:", chapterId);
     await ctx.runAction(internal.agents.nif_controller.orchestrateChapterProduction, {
       bookId: args.bookId,
       chapterId,
     });
+    console.log("📚 Analyst: NIF Controller Triggered Successfully.");
   },
 });
 
