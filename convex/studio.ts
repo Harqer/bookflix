@@ -286,7 +286,7 @@ export const listJobsInternal = internalQuery({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("render_jobs")
-      .withIndex("by_userId", (q) => q.eq("userId", "poc-user-001")) // Filter for POC
+      .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
       .collect();
   },
 });
