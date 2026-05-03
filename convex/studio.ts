@@ -204,6 +204,16 @@ export const getWorldBible = query({
   },
 });
 
+export const listChaptersInternal = internalQuery({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("chapters")
+      .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
+      .collect();
+  },
+});
+
 export const listChapters = query({
   args: { bookId: v.id("books") },
   handler: async (ctx, args) => {
