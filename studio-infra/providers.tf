@@ -14,14 +14,7 @@ terraform {
       source  = "vercel/vercel"
       version = "~> 1.0"
     }
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    neon = {
-      source  = "terraform-community-providers/neon"
-      version = "~> 0.1"
-    }
+
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = "~> 4.0"
@@ -44,14 +37,7 @@ provider "spacelift" {
 provider "vercel" {
   api_token = var.vercel_api_token
 }
-provider "aws" {
-  region     = var.aws_region
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-}
-provider "neon" {
-  token = var.neon_api_key
-}
+
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }

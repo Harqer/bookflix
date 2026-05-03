@@ -20,25 +20,9 @@ variable "vercel_api_token" {
   sensitive = true
 }
 
-variable "aws_region" {
-  type    = string
-  default = "us-east-1"
-}
 
-variable "aws_access_key" {
-  type      = string
-  sensitive = true
-}
 
-variable "aws_secret_key" {
-  type      = string
-  sensitive = true
-}
 
-variable "neon_api_key" {
-  type      = string
-  sensitive = true
-}
 
 variable "cloudflare_api_token" {
   type      = string
@@ -54,9 +38,7 @@ variable "convex_cloud_url" {
   type = string
 }
 
-variable "database_url" {
-  type = string
-}
+
 
 variable "spacelift_api_key_id" {
   type      = string
