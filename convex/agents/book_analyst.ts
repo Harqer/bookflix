@@ -86,7 +86,7 @@ export const analyzeChapter = internalAction({
     await ctx.runMutation(internal.studio.createSceneInternal, {
       chapterId: args.chapterId,
       sceneNumber: 1,
-      slug: "EXT. NEON ALLEY - NIGHT",
+      slugline: "EXT. NEON ALLEY - NIGHT",
       description: "Kael discovers the code.",
       screenplayChunk: screenplay,
     });
