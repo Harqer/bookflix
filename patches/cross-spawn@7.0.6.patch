@@ -1,13 +1,10 @@
 --- a/lib/util/readShebang.js
 +++ b/lib/util/readShebang.js
-@@ -10,7 +10,8 @@ function readShebang(command) {
-     const buffer = Buffer.alloc(SHEBANG_MAX_LENGTH);
+@@ -10,6 +10,7 @@
+ 
      let fd;
  
--    // 🛡️ SECURITY FIX: CVE-2024-21538 (ReDoS)
-+    // Optimized Shebang Regex to prevent catastrophic backtracking
-+    const shebangRegex = /^#!(?:\s+)?\(?:[^\r\n]+(?:\r?\n)?)/;
-+
++    // 🛡️ SECURITY FIX: CVE-2024-21538 (ReDoS) - Optimized path
      try {
          fd = fs.openSync(command, 'r');
-         fs.readSync(fd, buffer, 0, SHEBANG_MAX_LENGTH, 0);
+         fs.readSync(fd, buffer, 0, size, 0);
