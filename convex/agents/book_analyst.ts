@@ -82,6 +82,15 @@ export const analyzeChapter = internalAction({
     // Simulated Screenplay Generation for POC
     const screenplay = "EXT. NEON ALLEY - NIGHT\nKael stares at the H200 cluster. The code glows in his eyes.";
     
+    // 2. Scene Segmentation (POC: Seed a single scene)
+    await ctx.runMutation(internal.studio.updateSceneInternal, {
+      chapterId: args.chapterId,
+      sceneNumber: 1,
+      slug: "EXT. NEON ALLEY - NIGHT",
+      description: "Kael discovers the code.",
+      screenplayChunk: screenplay,
+    });
+
     await ctx.runMutation(internal.studio.updateChapterInternal, {
       chapterId: args.chapterId,
       status: "scripting_complete",
