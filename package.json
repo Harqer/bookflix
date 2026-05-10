@@ -109,7 +109,8 @@
       "cross-spawn": "^7.0.6",
       "braces": "^3.0.3",
       "micromatch": "^4.0.8",
-      "fast-xml-parser": "^5.7.2"
+      "fast-xml-parser": "^5.7.2",
+      "fast-xml-builder": "^1.1.7"
     }
   }
 }
