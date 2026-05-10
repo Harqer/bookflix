@@ -53,10 +53,21 @@ export const updateBookDNAInternal = internalMutation({
       mood: v.string(),
       texture: v.string(),
       era: v.string(),
+      authorialDNA: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.bookId, { atmosphericDNA: args.dna });
+  },
+});
+
+export const updateBookSummaryInternal = internalMutation({
+  args: {
+    bookId: v.id("books"),
+    summary: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.bookId, { summary: args.summary });
   },
 });
 
@@ -134,6 +145,16 @@ export const updateSceneMetadataInternal = internalMutation({
   },
 });
 
+export const listCharactersInternal = internalQuery({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("characters")
+      .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
+      .collect();
+  },
+});
+
 export const getRawTextInternal = internalQuery({
   args: { bookId: v.id("books") },
   handler: async (ctx, args) => {
@@ -181,6 +202,7 @@ export const submitBookInternal = internalMutation({
     rawText: v.string(),
     productionStyle: v.optional(v.string()),
     tone: v.optional(v.string()),
+    productionMode: v.optional(v.union(v.literal("movie"), v.literal("series"))),
   },
   handler: async (ctx, args) => {
     const bookId = await ctx.db.insert("books", {
@@ -190,6 +212,7 @@ export const submitBookInternal = internalMutation({
       genre: args.genre,
       tone: args.tone,
       rawText: args.rawText,
+      productionMode: args.productionMode,
       status: "pending",
       chapterCount: 0,
       analyzedChapters: 0,
@@ -239,6 +262,13 @@ export const listChapters = query({
       .query("chapters")
       .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
       .collect();
+  },
+});
+
+export const getChapterInternal = internalQuery({
+  args: { chapterId: v.id("chapters") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.chapterId);
   },
 });
 
@@ -351,5 +381,104 @@ export const cacheBriefInternal = internalMutation({
       brief: args.brief,
       createdAt: Date.now(),
     });
+  },
+});
+export const discardProduction = mutation({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    
+    const book = await ctx.db.get(args.bookId);
+    if (!book || book.userId !== identity.subject) throw new Error("Unauthorized");
+    
+    // Purge chapters and scenes
+    const chapters = await ctx.db.query("chapters").withIndex("by_bookId", (q) => q.eq("bookId", args.bookId)).collect();
+    for (const chapter of chapters) {
+        const scenes = await ctx.db.query("videoScenes").withIndex("by_chapterId", (q) => q.eq("chapterId", chapter._id)).collect();
+        for (const scene of scenes) {
+            await ctx.db.delete(scene._id);
+        }
+        await ctx.db.delete(chapter._id);
+    }
+    
+    await ctx.db.patch(args.bookId, { 
+        status: "pending", 
+        chapterCount: 0, 
+        analyzedChapters: 0,
+        progress: 0 
+    });
+  },
+});
+
+export const refireProduction = mutation({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    
+    const book = await ctx.db.get(args.bookId);
+    if (!book || book.userId !== identity.subject) throw new Error("Unauthorized");
+    
+    await ctx.scheduler.runAfter(0, internal.agents.nif_controller.triggerProductionCycle, {
+      bookId: args.bookId,
+      userId: identity.subject,
+    });
+  },
+});
+
+// --- 5. Directorial Chat & Feedback ---
+
+export const listMessages = query({
+  args: { bookId: v.id("books") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const book = await ctx.db.get(args.bookId);
+    if (!book || book.userId !== identity.subject) return [];
+
+    return await ctx.db
+      .query("messages")
+      .withIndex("by_bookId", (q) => q.eq("bookId", args.bookId))
+      .collect();
+  },
+});
+
+export const sendMessage = mutation({
+  args: {
+    bookId: v.id("books"),
+    text: v.string(),
+    role: v.union(v.literal("user"), v.literal("ai")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const book = await ctx.db.get(args.bookId);
+    if (!book || book.userId !== identity.subject) throw new Error("Unauthorized");
+
+    await ctx.db.insert("messages", {
+      bookId: args.bookId,
+      text: args.text,
+      role: args.role,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const deleteMessage = mutation({
+  args: { messageId: v.id("messages") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const message = await ctx.db.get(args.messageId);
+    if (!message) throw new Error("Message not found");
+
+    const book = await ctx.db.get(message.bookId);
+    if (!book || book.userId !== identity.subject) throw new Error("Unauthorized");
+
+    await ctx.db.delete(args.messageId);
   },
 });

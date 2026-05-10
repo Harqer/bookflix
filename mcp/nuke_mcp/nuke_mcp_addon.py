@@ -205,7 +205,10 @@ class NukeMCPServer:
             # Misc
             "Dot", "Switch", "TimeOffset", "NoOp", "Text", "Roto", "RotoPaint",
             # Special nodes
-            "BackdropNode"
+            "BackdropNode",
+            # Ocula Hallucination Auditing
+            "O_DisparityGenerator", "O_NewView", "O_ColourMatcher", "O_VerticalAligner", "O_Solver",
+            "O_Interaxial", "O_Ocular", "O_STMap"
         ]
         
         # Try to get actual node classes from environment if possible
@@ -961,13 +964,21 @@ class NukeMCPPanel(nukescripts.PythonPanel):
 
 # Global instance of the panel
 _panel = None
+_headless_server = None
 
 def show_panel():
-    """Show the NukeMCP panel"""
+    """Show the NukeMCP panel (GUI Mode)"""
     global _panel
     if _panel is None:
         _panel = NukeMCPPanel()
     _panel.show()
 
-# Add menu item
-nuke.menu('Nuke').addCommand('NukeMCP/Show Panel', show_panel)
+# 🏛️ HEADLESS AUTO-START: Committing the Handshake in Production
+# This ensures that in a GPU Cluster (Terminal Mode), the server starts immediately.
+if nuke.env.get('gui') is False:
+    print("🏛️ Cluster: Headless Mode Detected. Automatically committing Handshake...")
+    _headless_server = NukeMCPServer(host='0.0.0.0', port=9876) # Listen on all interfaces for cluster reachability
+    _headless_server.start()
+else:
+    # GUI Mode: Register the manual menu item for artists
+    nuke.menu('Nuke').addCommand('NukeMCP/Show Panel', show_panel)

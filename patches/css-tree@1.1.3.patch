@@ -1,0 +1,11 @@
+--- a/dist/csstree.js
++++ b/dist/csstree.js
+@@ -6700,6 +6700,8 @@
+         return aArgs[aName];
+       } else if (arguments.length === 3) {
+         return aDefaultValue;
++      } else if (aName === 'version') {
++        return 3; // source-map spec default; prevents SSR crash when version field is absent
+       } else {
+         throw new Error('"' + aName + '" is a required argument.');
+       }

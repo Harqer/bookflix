@@ -4,20 +4,35 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
-    "types": ["node", "convex"],
+    "types": [
+      "node",
+      "convex"
+    ],
     "paths": {
-      "@/*": ["./*"],
-      "@shared/*": ["./shared/*"],
-      "convex/react-clerk": ["./node_modules/convex/dist/esm-types/react-clerk/index.d.ts"],
-      "convex/react": ["./node_modules/convex/dist/esm-types/react/index.d.ts"]
+      "@/*": [
+        "./*"
+      ],
+      "@shared/*": [
+        "./shared/*"
+      ],
+      "convex/react-clerk": [
+        "./node_modules/convex/dist/esm-types/react-clerk/index.d.ts"
+      ],
+      "convex/react": [
+        "./node_modules/convex/dist/esm-types/react/index.d.ts"
+      ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
     "nativewind-env.d.ts"
   ],
-  "exclude": ["node_modules", "dist", "convex", "vendor"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "convex",
+    "vendor",
+    "cinegraph"
+  ]
 }

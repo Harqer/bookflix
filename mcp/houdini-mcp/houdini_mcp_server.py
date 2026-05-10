@@ -515,11 +515,18 @@ class HoudiniConnection:
 _houdini_connection: HoudiniConnection = None
 
 def get_houdini_connection() -> HoudiniConnection:
-    """Get or create a persistent HoudiniConnection object."""
+    """Get or create a persistent HoudiniConnection object (Production Discovery)."""
     global _houdini_connection
     if _houdini_connection is None:
-        logger.info("Creating new HoudiniConnection.")
-        _houdini_connection = HoudiniConnection(host="localhost", port=9876)
+        cluster_host = os.environ.get("HOUDINI_CLUSTER_IP")
+        cluster_port = int(os.environ.get("HOUDINI_CLUSTER_PORT", 9876))
+        
+        if not cluster_host:
+            logger.critical("PRODUCTION_ERROR: HOUDINI_CLUSTER_IP not found in Sovereign Vault.")
+            raise ConnectionError("Houdini Cluster unreachable: No Sovereign IP discovered.")
+            
+        logger.info(f"🏛️ Production Cluster discovered at {cluster_host}:{cluster_port}")
+        _houdini_connection = HoudiniConnection(host=cluster_host, port=cluster_port)
 
     # Always try to connect, returns True if already connected or successful now
     if not _houdini_connection.connect():
@@ -645,12 +652,11 @@ def execute_houdini_code(ctx: Context, code: str) -> str:
 
 # -------------------------------------------------------------------
 # NEW rendering Tools
-# -------------------------------------------------------------------
-@mcp.tool()
+# ---------------------------------------------------@mcp.tool()
 def render_single_view(ctx: Context,
                        orthographic: bool = False,
                        rotation: List[float] = [0, 90, 0],
-                       render_path: str = "C:/temp/",
+                       render_path: str = "/tmp/renders/",
                        render_engine: str = "opengl",
                        karma_engine: str = "cpu") -> str:
     """
@@ -677,9 +683,9 @@ def render_single_view(ctx: Context,
 
 @mcp.tool()
 def render_quad_views(ctx: Context,
-                      render_path: str = "C:/temp/",
-                      render_engine: str = "opengl",
-                      karma_engine: str = "cpu") -> str:
+                       render_path: str = "/tmp/renders/",
+                       render_engine: str = "opengl",
+                       karma_engine: str = "cpu") -> str:
     """
     Render 4 canonical views from Houdini and return the image paths.
     """
@@ -703,7 +709,7 @@ def render_quad_views(ctx: Context,
 @mcp.tool()
 def render_specific_camera(ctx: Context,
                            camera_path: str,
-                           render_path: str = "C:/temp/",
+                           render_path: str = "/tmp/renders/",
                            render_engine: str = "opengl",
                            karma_engine: str = "cpu") -> str:
     """
@@ -726,6 +732,7 @@ def render_specific_camera(ctx: Context,
     except Exception as e:
         logger.error(f"render_specific_camera failed: {e}", exc_info=True)
         return f"Render failed: {str(e)}"
+ailed: {str(e)}"
 
 # -------------------------------------------------------------------
 # NEW OPUS API Tools

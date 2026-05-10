@@ -1,0 +1,62 @@
+# Sovereign Studio: Technical Specification (v2026.1)
+
+## 🏛️ Infrastructure: The Hybrid-Neural Mesh
+
+### 1. The Convex Brain (Real-time State)
+- **Deployment**: `zealous-crocodile-76.convex.cloud`
+- **Schema**:
+  - `books`: Source material & Narrative analysis.
+  - `videoScenes`: Shot metadata, prompts, and Vercel Blob CDN links.
+  - `productionLogs`: Real-time agentic thinking & fleet telemetry.
+- **Critical Mutations**:
+  - `studio:updateSceneWithVercelBlob`: Updates the CDN link for a finished render.
+  - `nif:dispatchToFleet`: Triggers the H200 cluster via a signed OIDC request.
+
+### 2. The Vercel Body (Edge Delivery)
+- **Framework**: Next.js 16 (App Router + Server Actions).
+- **Security**:
+  - `vercel.json` locks in the **Neural SQL Injection Shield**.
+  - `middleware.ts` integrates **Arcjet** for prompt-level filtering.
+- **Storage**:
+  - **Vercel Blob**: Used for streaming 4K proxies (CDN).
+  - **Vercel KV**: Real-time rate limiting for directorial commands.
+
+### 3. The H200 Muscle (Synthesis Fleet)
+- **Cluster ID**: `siphon-h200-cluster-01`
+- **Weight Registry**: `bookflix` (Cloudflare R2).
+- **Neural Bootstrap**:
+  - Models pulled: RigGS v2, Cosmos, DiffuMan, Trellis Forge.
+  - Process: `rclone copy siphon-r2:bookflix/weights /mnt/models`.
+
+## 🛰️ Production Protocol: "The Firing Cycle"
+
+1. **Directorial Synthesis**:
+   - Agent: `llama_scripter.ts` & `director.ts`.
+   - Output: `DirectorBrief` (JSON) containing visual DNA and scene sequences.
+   
+2. **Cinematographic Mapping**:
+   - Agent: `cinematographer.ts`.
+   - Logic: Translates narrative beats into Technical Shot Lists (Angles, Focal Lengths, Motion Vectors).
+
+3. **Fleet Dispatch**:
+   - Trigger: `nif_controller.ts`.
+   - Dispatcher: `modal` or `lambda` (H200 Fleet).
+   - Auth: OIDC Identity Token injected via Vercel.
+
+4. **The Sovereign Handover**:
+   - Cluster renders video bits.
+   - Dual-Upload:
+     - `Master` -> R2 (`assets.cinegraph.studio`).
+     - `Proxy` -> Vercel Blob (`*.public.blob.vercel-storage.com`).
+   - Callback: H200 calls Convex `updateSceneWithVercelBlob`.
+
+## 🛡️ Security & Zero-Trust
+- All secrets (API keys) are stored in **Infisical** (`bfffc6c9...`).
+- Cross-platform auth uses **OIDC Federation** (No static tokens in the code).
+- **Arcjet** redacts `API_KEY` and `PII` patterns from all agent logs.
+
+## 🏁 Operational Commands
+- `npm run dev`: Local studio boot.
+- `npx convex dev`: Real-time agentic debug mode.
+- `npx vercel --prod`: Deploy hardened edge security.
+- `./scripts/siphon_bootstrap.sh`: Force neural weight sync on the cluster.

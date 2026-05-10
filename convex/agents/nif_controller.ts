@@ -44,7 +44,7 @@ export const orchestrateChapterProduction = internalAction({
       await logger.info("🛰️ NIF: Distributing Scene Production to Fleet...", traceId);
       const scenes = await ctx.runQuery(internal.studio.listScenesInternal, { chapterId: args.chapterId });
       
-      await Promise.all(scenes.map(async (scene) => {
+      await Promise.all(scenes.map(async (scene: any) => {
         await ctx.runAction(internal.agents.master_orchestrator.orchestrateFullFiringCycle, {
           bookId: args.bookId,
           chapterId: args.chapterId,
@@ -54,6 +54,18 @@ export const orchestrateChapterProduction = internalAction({
       }));
 
       await logger.info("✅ NIF: Sovereign Production Dispatched to Fleet", traceId);
+
+      // 4. Phase 4: 4K High-Fidelity Finishing (AI Parallel Suite)
+      await logger.info("🛰️ NIF: Initiating Phase 4 - 4K High-Fidelity Finishing...", traceId);
+      
+      // We call the feature assembler to run the 4K refinement pass (Cosmos + Sana + VSR)
+      await ctx.runAction(internal.agents.feature_assembler.assembleChapterFeature, {
+        bookId: args.bookId,
+        chapterId: args.chapterId,
+        enable4KRefinement: true,
+      });
+
+      await logger.info("🎬 NIF: 4K Finishing Cycle Dispatched.", traceId);
     } catch (err) {
       await logger.error(`❌ NIF: Production Dispatch Failed: ${err}`, traceId);
       throw err;

@@ -2,6 +2,7 @@
 import { v } from "convex/values";
 import { internalAction } from "../_generated/server";
 import { internal, api } from "../_generated/api";
+const internalAny = internal as any;
 import { logger } from "../lib/observability";
 
 /**
@@ -21,7 +22,7 @@ export const orchestrateMayaAnimation = internalAction({
     await logger.info("🏗️ Maya: Orchestrating Technical Animation...", traceId);
 
     // 1. Fetch World Bible for character rig references
-    const bible = await ctx.runQuery(internal.studio.getBookInternal, { bookId: args.bookId });
+    const bible = await ctx.runQuery(internalAny.studio.getWorldBible, { bookId: args.bookId });
     
     // 2. Queue Maya Render Job
     await ctx.runMutation(internal.studio.createRenderJobInternal, {

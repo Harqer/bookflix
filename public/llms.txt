@@ -1,0 +1,27 @@
+# Sovereign Cinematic Studio (2026)
+> The Neural Production Plane for Autonomous Feature Film Synthesis.
+
+## Architecture Overview
+- **Brain**: Convex (Deterministic State & Agentic Orchestration)
+- **Body**: Vercel (Edge Security, AI Firewall, 4K CDN Streaming)
+- **Muscle**: H200 GPU Cluster (Latent Video Synthesis & 4DGS Rigging)
+- **Storage**: Siphon Registry (Cloudflare R2 Gold Masters) & Vercel Blob (Edge Proxies)
+
+## Agentic Roles
+- **Director**: Narrative synthesis & Cinematographic intent (Claude 4.5/GPT-5).
+- **Cinematographer**: Technical shot design & Motion control (NVIDIA NIM).
+- **Voice Master**: Sensory audio synthesis & SFX (ElevenLabs/Suno).
+- **Nif Controller**: Real-time fleet orchestration & Latent handovers.
+
+## Production Cycle
+1. **Scoping**: Director synthesizes Book -> Screenplay -> World Bible.
+2. **Design**: Cinematographer generates Recursive Shot Briefs.
+3. **Synthesis**: H200 Fleet renders 4K Latent Streams.
+4. **Handoff**: Dual-Siphon upload to R2 (Master) and Vercel Blob (CDN).
+
+## Security
+- **Edge Shield**: Vercel WAF with Neural SQLi Rulesets.
+- **Application Logic**: Arcjet Prompt Injection & Sensitive Info redaction.
+- **Identity**: OIDC Federation for Zero-Secret infrastructure access.
+
+For full technical specs, see [/llms-full.txt](/llms-full.txt)

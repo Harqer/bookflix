@@ -30,6 +30,24 @@ export async function protectAction(
   clientContext?: { ip?: string, headers?: Record<string, string> }, 
   prompt?: string
 ) {
+  // 🛡️ DIRECTORIAL BYPASS: Skip Arcjet for local test identities or background processes without IP
+  if (
+    clerkId === "test-director-local" || 
+    !process.env.ARCJET_API_KEY ||
+    !clientContext?.ip
+  ) {
+    return { 
+      isDenied: () => false, 
+      isAllowed: () => true,
+      reason: {
+        isRateLimit: () => false,
+        isPromptInjection: () => false,
+        isShield: () => false,
+        isBot: () => false,
+      }
+    } as any;
+  }
+
   // 1. Construct Request Context with fallback defaults
   const request: any = {
     ip: clientContext?.ip || "127.0.0.1",

@@ -23,6 +23,10 @@ export const logger = {
     }));
   },
 
+  warn: (message: string, traceId: string, data?: any) => {
+    console.warn(JSON.stringify({ level: "WARN", message, traceId, ...data }));
+  },
+
   audit: (message: string, traceId: string, data?: any) => {
     console.warn(JSON.stringify({ level: "AUDIT", message, traceId, ...data }));
   }

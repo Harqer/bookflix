@@ -13,7 +13,7 @@ export function useAuth() {
       name: clerkUser.fullName || clerkUser.username || "Studio Member",
       email: clerkUser.primaryEmailAddress?.emailAddress || "",
       imageUrl: clerkUser.imageUrl,
-      createdAt: new Date(clerkUser.createdAt),
+      createdAt: clerkUser.createdAt ? new Date(clerkUser.createdAt) : new Date(),
       // In a real app, you might sync 'role' from your DB
       role: (clerkUser.publicMetadata.role as string) || "user",
     };

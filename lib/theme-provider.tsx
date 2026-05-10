@@ -45,8 +45,9 @@ export function ThemeProvider({ children, initialMetrics }: ThemeProviderProps) 
   }, [applyScheme, colorScheme]);
 
   const themeVariables = useMemo(
-    () =>
-      vars({
+    () => {
+      if (!colorScheme || !SchemeColors[colorScheme]) return {};
+      return vars({
         "color-primary": SchemeColors[colorScheme].primary,
         "color-background": SchemeColors[colorScheme].background,
         "color-surface": SchemeColors[colorScheme].surface,
@@ -56,7 +57,8 @@ export function ThemeProvider({ children, initialMetrics }: ThemeProviderProps) 
         "color-success": SchemeColors[colorScheme].success,
         "color-warning": SchemeColors[colorScheme].warning,
         "color-error": SchemeColors[colorScheme].error,
-      }),
+      });
+    },
     [colorScheme],
   );
 

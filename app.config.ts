@@ -28,8 +28,8 @@ const schemeFromBundleId = `manus${timestamp}`;
 
 const env = {
   // App branding - update these values directly (do not use env vars)
-  appName: "BookCinema - Book to Movie AI Studio",
-  appSlug: "book-to-movie",
+  appName: "Glow - Your Imagination in Motion",
+  appSlug: "glow-studio",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
   logoUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663561331060/GbMiahXHM4LYZgvNkrrU4y/bookcinema-icon-iM5RBrsWjhTbrn9EVtFdr6.png",
@@ -122,8 +122,8 @@ const config: ExpoConfig = {
     ],
   ],
   experiments: {
-    typedRoutes: true,
-    reactCompiler: true,
+    typedRoutes: false,
+    reactCompiler: false,
   },
 };
 

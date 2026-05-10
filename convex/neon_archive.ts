@@ -15,15 +15,21 @@ export const archiveProductionData = internalAction({
     dna: v.any(),
     brief: v.any(),
     score: v.number(),
+    worldBible: v.optional(v.any()), // Full narrative world state
+    characters: v.optional(v.array(v.any())), // All main/sub characters
   },
   handler: async (ctx, args) => {
     const NEON_URL = process.env.NEON_API_URL;
-    if (!NEON_URL) return;
+    if (!NEON_URL) {
+      await logger.warn("🏛️ Neon: API URL missing, skipping archival.", args.bookId);
+      return;
+    }
 
-    await logger.info("🏛️ Neon: Archiving Production Metadata", args.bookId);
+    await logger.info("🏛️ Neon: Archiving Comprehensive Production Package", args.bookId);
 
     try {
-      // 🚀 RESTful Archival: Neon Serverless SQL
+      // 🚀 RESTful Archival: Neon Serverless SQL Data Lake
+      // We are storing the "Master Blueprint" for the entire film segment.
       await fetch(NEON_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,11 +39,14 @@ export const archiveProductionData = internalAction({
           atmospheric_dna: args.dna,
           usd_brief: args.brief,
           reality_score: args.score,
-          archived_at: new Date().toISOString()
+          world_bible: args.worldBible,
+          character_assets: args.characters,
+          archived_at: new Date().toISOString(),
+          production_tier: "theatrical_gold"
         })
       });
       
-      await logger.info("✅ Neon: Data Successfully Archived", args.bookId);
+      await logger.info("✅ Neon: Production Package Successfully Archived", args.bookId);
     } catch (err) {
       await logger.error("❌ Neon: Archival Failed", args.bookId, { error: String(err) });
     }

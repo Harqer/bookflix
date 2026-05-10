@@ -2580,12 +2580,6 @@ def register():
         default=False
     )
 
-    bpy.types.Scene.blendermcp_sketchfab_api_key = bpy.props.StringProperty(
-        name="Sketchfab API Key",
-        subtype="PASSWORD",
-        description="API Key provided by Sketchfab",
-        default=""
-    )
 
     # Register preferences class
     bpy.utils.register_class(BLENDERMCP_AddonPreferences)
@@ -2596,7 +2590,15 @@ def register():
     bpy.utils.register_class(BLENDERMCP_OT_StopServer)
     bpy.utils.register_class(BLENDERMCP_OT_OpenTerms)
 
-    print("BlenderMCP addon registered")
+    print("🏛️ BlenderMCP: Production Addon Registered")
+
+    # 🏛️ HEADLESS AUTO-START: Committing the Handshake in Production
+    # Detects if Blender is in a GPU cluster (Background Mode) and auto-starts the MCP server.
+    if bpy.app.background:
+        print("🏛️ Cluster: Headless Mode Detected. Automatically committing Handshake...")
+        # Ensure the port is pulled from the Sovereign Vault
+        bpy.context.scene.blendermcp_port = int(os.environ.get("BLENDER_CLUSTER_PORT", 9876))
+        bpy.ops.blendermcp.start_server()
 
 def unregister():
     # Stop the server if it's running

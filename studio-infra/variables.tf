@@ -74,5 +74,41 @@ variable "remotion_aws_secret_key" {
   sensitive = true
 }
 
+variable "cloudflare_r2_access_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "cloudflare_r2_secret_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "vercel_blob_read_write_token" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "aws_access_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "aws_secret_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "neon_api_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
 # Note: AI keys, Convex keys, and Redis keys are now PULLED from Infisical 
 # and do not need to be defined here manually.

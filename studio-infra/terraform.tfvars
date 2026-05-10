@@ -16,6 +16,11 @@ aws_region              = "us-east-1"
 # Cloudflare (Cinematic Storage)
 cloudflare_api_token    = "cfat_FKfdooNOTvBUXfWWO5j1hi8IZ5rJTyRxPPTYaveE3e76cd3e"
 cloudflare_account_id   = "b2a5ee203295f97276dfe509ebcbb931"
+cloudflare_r2_access_key = "REPLACE_WITH_R2_ACCESS_KEY" # Found in Vercel
+cloudflare_r2_secret_key = "REPLACE_WITH_R2_SECRET_KEY" # Found in Vercel
+
+# Vercel Blob
+vercel_blob_read_write_token = "REPLACE_WITH_BLOB_TOKEN" # Found in Vercel
 
 # Neon (Database) - PLEASE REPLACE WITH YOUR neontoken_... KEY
 neon_api_key            = "napi_x1hldu28q9femmbmz66719y55hbi6836ahq0yzqwgkos8ocsuez0pzhekggw4"

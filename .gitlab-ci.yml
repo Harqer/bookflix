@@ -40,5 +40,9 @@ app_deploy:
     # Arm & Deploy Vercel
     - infisical export --env=prod --format=dotenv | vercel env add
     - vercel --prod --confirm --token $VERCEL_TOKEN
+    # Arm & Deploy Modal Secrets
+    - pip install modal
+    - infisical export --env=prod --format=dotenv > .env.production
+    - modal secret create studio-secrets .env.production --force
   only:
     - main

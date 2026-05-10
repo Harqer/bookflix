@@ -26,6 +26,10 @@ module.exports = {
   theme: {
     extend: {
       colors: tailwindColors,
+      fontFamily: {
+        heading: ["Cinzel Decorative", "serif"],
+        body: ["Fraunces", "serif"],
+      },
     },
   },
   plugins: [

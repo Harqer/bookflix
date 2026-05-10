@@ -33,35 +33,6 @@ import * as SecureStore from "expo-secure-store";
 import { ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import * as Sentry from "@sentry/react-native";
 
-Sentry.init({
-  dsn: "https://f91178c0ccc03bba73f7ca1a824ae463@o4511300849631232.ingest.us.sentry.io/4511300862345216",
-
-  // Adds more context data to events (IP address, cookies, user, etc.)
-  sendDefaultPii: true,
-
-  // Enable Logs
-  enableLogs: true,
-
-  // Performance Monitoring
-  tracesSampleRate: 1.0,
-
-  // 🤖 AI Monitoring (2026 Edition)
-  // Tracks costs and token usage for cinematic agents
-  _experiments: {
-    aiMonitoring: true,
-  },
-
-  // Configure Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-  integrations: [
-    Sentry.mobileReplayIntegration(),
-    Sentry.feedbackIntegration(),
-  ],
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
-});
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL!;
@@ -95,11 +66,31 @@ const tokenCache = {
 
 import { useSyncUser } from "@/hooks/use-sync-user";
 
-// 🛡️ Sentry Identity Sync: Link Clerk User to Sentry Events
+// 🛡️ Sentry Init + Identity Sync
+// Sentry.init() is moved into useEffect because useEffect is GUARANTEED by React
+// spec to never run during SSR — solving the "version is a required argument" crash
+// caused by Sentry 8.x calling native modules unavailable in Node.js SSR context.
 function SentryIdentitySync() {
   const { user } = useUser();
   useSyncUser(); // 🔄 Synchronous check & sync to Neon
-  
+
+  useEffect(() => {
+    // Init Sentry on first client-side render (never runs in SSR)
+    Sentry.init({
+      dsn: "https://f91178c0ccc03bba73f7ca1a824ae463@o4511300849631232.ingest.us.sentry.io/4511300862345216",
+      sendDefaultPii: true,
+      enableLogs: true,
+      tracesSampleRate: 1.0,
+      _experiments: { aiMonitoring: true },
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+      integrations: [
+        Sentry.mobileReplayIntegration(),
+        Sentry.feedbackIntegration(),
+      ],
+    });
+  }, []); // empty deps = runs once after first client render
+
   useEffect(() => {
     if (user) {
       Sentry.setUser({
@@ -115,7 +106,8 @@ function SentryIdentitySync() {
   return null;
 }
 
-export default Sentry.wrap(function RootLayout() {
+// Sentry.wrap is a no-op in SSR to prevent environment-matching crashes
+export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
 
@@ -163,13 +155,13 @@ export default Sentry.wrap(function RootLayout() {
     >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <SentryIdentitySync />
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0c1324' }}>
           <ThemeProvider initialMetrics={providerInitialMetrics}>
-            <Stack>
+            <Stack screenOptions={{ contentStyle: { backgroundColor: '#0c1324' } }}>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>
-            <StatusBar style="auto" />
+            <StatusBar style="light" />
           </ThemeProvider>
         </GestureHandlerRootView>
       </ConvexProviderWithClerk>
@@ -177,4 +169,4 @@ export default Sentry.wrap(function RootLayout() {
   );
 
   return content;
-});
+}

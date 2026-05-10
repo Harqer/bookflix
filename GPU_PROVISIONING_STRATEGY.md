@@ -44,6 +44,21 @@ Minimize costs while maintaining production capability for LongFormVideoCat and 
 
 ---
 
+## 🏛️ The Hybrid Sovereign Model (2026.05 Update)
+To optimize production speed and reduce infrastructure overhead, BookCinema has adopted a hybrid approach for model deployment:
+
+### 1. Sovereign-Cloud (NIM-Resident)
+**Models**: `LongCatVideo`, `NVIDIA Cosmos`, `DiffuMan`
+**Strategy**: These models are called directly from Vercel/Convex via **NVIDIA NIM Cloud APIs**. 
+**Benefit**: No local weight siphoning (200GB+ savings); instant scalability for non-specialized visual generation.
+
+### 2. Sovereign-Local (Cluster-Resident)
+**Models**: `RigGS` (Maya), `Ludus` (Unreal), `PDG/Karma` (Houdini)
+**Strategy**: These are hosted on the **Private GPU Cluster** (H200 fleet) because they require direct RPC/binary integration with the DCC platforms.
+**Benefit**: Zero-latency character rigging, motion-to-sim handoffs, and final theatrical rendering.
+
+---
+
 ## Recommended Strategy: Hybrid Approach
 
 ### Phase 1: MVP (Free Tier)

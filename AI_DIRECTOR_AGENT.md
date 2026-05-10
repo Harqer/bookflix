@@ -818,6 +818,73 @@ export const booksRouter = router({
 
 ---
 
+## Part 8: Sovereign Audio Production (ElevenLabs)
+
+### Overview
+
+The Sovereign Audio Production module orchestrates high-fidelity dialogue, procedural scores, and cinematic sound effects (foley) using the latest ElevenLabs generative APIs. This module ensures that every scene has a "Theatrical-Grade" audio landscape that is semantically aligned with the narrative subtext.
+
+### Audio Generation Components
+
+| Component | Engine | Use Case | Features |
+|-----------|--------|----------|----------|
+| **Dialogue** | ElevenLabs V3 / Turbo V2.5 | Narrative voiceovers & character speech | Emotional inflection, multi-accent, ultra-low latency |
+| **Score** | ElevenLabs Music | Procedural cinematic soundtracks | Genre-aligned, duration-controlled, multi-instrumental |
+| **Foley** | ElevenLabs SFX | High-fidelity sound effects | Text-to-Sound, cinematic quality, procedural variation |
+| **Isolator** | ElevenLabs Voice Isolator | Post-production audio cleanup | Removes background noise, restores vocal clarity |
+
+### Implementation Details
+
+The `AudioMaster` agent autonomously selects the best synthesis engine based on the scene's emotional tone and cinematic requirements.
+
+```typescript
+interface AudioRequest {
+  type: 'dialogue' | 'score' | 'foley';
+  prompt: string;
+  config: {
+    modelId?: string; // e.g., 'eleven_v3'
+    voiceId?: string;
+    duration?: number;
+    stability?: number;
+  };
+}
+
+// Example: Orchestrating a Tense Scene
+const score = await audioMaster.generateAmbientAudio({
+  sceneId: currentScene.id,
+  prompt: "A low, pulsing synthesizer track with metallic percussive hits, increasing in tension.",
+  type: "score",
+  duration: 30
+});
+
+const dialogue = await audioMaster.generateVoiceAndCaptions({
+  sceneId: currentScene.id,
+  text: "They're already inside. We have no choice but to engage.",
+  modelId: "eleven_v3"
+});
+```
+
+### Sovereign Failover Logic
+
+To ensure 100% production uptime, the system implements a **Dual-Fleet Failover Strategy**:
+
+1. **Primary**: ElevenLabs Cloud API (V3/Premium)
+2. **Fallback**: Local Sovereign Harmonic Fleet (AudioCraft/MusicGen)
+3. **Auto-Discovery**: Automatic recovery from invalid Voice IDs or API rate limits.
+
+---
+
+## Part 9: Cost & Performance Metrics
+
+| Component | Cost per Scene | Latency | Quality Standard |
+|-----------|---------------|---------|------------------|
+| **Dialogue** | ~$0.02 | < 1s | Studio-Grade |
+| **Music** | ~$0.05 | 5-10s | Theatrical |
+| **SFX** | ~$0.01 | 2-4s | Cinematic |
+| **Rendering** | Variable | 30s+ | 4K / Atmos |
+
+---
+
 ## References
 
 - **FILMAGENT Paper:** https://arxiv.org/abs/2501.12909

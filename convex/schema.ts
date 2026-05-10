@@ -33,10 +33,15 @@ export default defineSchema({
     status: v.string(),
     chapterCount: v.number(),
     analyzedChapters: v.number(),
+    productionMode: v.optional(v.union(v.literal("movie"), v.literal("series"))),
     createdAt: v.number(),
     preferredLlm: v.optional(v.union(v.literal("cloud"), v.literal("personal"))),
     backgroundTrainingEnabled: v.optional(v.boolean()),
+    progress: v.optional(v.number()), // Production progress tracking
     atmosphericDNA: v.optional(v.any()), // Extracted by Scout, used by Director
+    characterManifest: v.optional(v.any()), // Sovereign asset tracking
+    productionStyle: v.optional(v.string()), // Luminous, etc.
+    productionType: v.optional(v.string()), // Legacy field
     consistencyScores: v.optional(v.object({
       characterAppearance: v.number(),
       characterPersonality: v.number(),
@@ -74,6 +79,7 @@ export default defineSchema({
     captionUrl: v.optional(v.string()), // Deepgram generated captions
     cameraParams: v.optional(v.any()), // JSON representation of CameraControlState
     status: v.string(), // pending, complete
+    audioManifest: v.optional(v.any()), // Symphonic mix (Voice + Score + SFX)
   }).index("by_chapterId", ["chapterId"]),
 
   render_jobs: defineTable({
@@ -105,6 +111,34 @@ export default defineSchema({
     filterFields: ["bookId"],
   }),
 
+  // 🛰️ Siphon Fleet Nodes
+  siphon_nodes: defineTable({
+    nodeId: v.string(),
+    type: v.string(), // "nuke_render", "unreal_render", "houdini_fx", "maya_animation"
+    vram: v.number(),
+    status: v.string(), // "idle", "busy", "offline"
+    endpoint: v.string(),
+    region: v.optional(v.string()),
+    lastSeen: v.number(),
+  })
+    .index("by_nodeId", ["nodeId"])
+    .index("by_type", ["type", "status"]),
+
+  // 👤 Character Consistency DNA
+  characters: defineTable({
+    bookId: v.id("books"),
+    name: v.string(),
+    dna: v.any(), // Visual anchor, latent seed, etc.
+  }).index("by_bookId", ["bookId"]),
+
+  // 🎬 Video Shots (Granular scene breakdown)
+  videoShots: defineTable({
+    sceneId: v.id("videoScenes"),
+    shotNumber: v.number(),
+    description: v.string(),
+    status: v.string(),
+  }).index("by_sceneId", ["sceneId"]),
+
   // 🛡️ Scalability: Semantic Brief Cache
   brief_cache: defineTable({
     dnaHash: v.string(), // Hashed Atmospheric DNA
@@ -112,4 +146,12 @@ export default defineSchema({
     brief: v.any(), // The generated USD brief
     createdAt: v.number(),
   }).index("by_dna_screenplay", ["dnaHash", "screenplayHash"]),
+
+  // 💬 Directorial Chat & Feedback Loops
+  messages: defineTable({
+    bookId: v.id("books"),
+    text: v.string(),
+    role: v.union(v.literal("user"), v.literal("ai")),
+    createdAt: v.number(),
+  }).index("by_bookId", ["bookId"]),
 });

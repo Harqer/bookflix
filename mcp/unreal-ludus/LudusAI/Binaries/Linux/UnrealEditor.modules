@@ -1,0 +1,13 @@
+{
+	"BuildId": "47537391",
+	"Modules": 
+	{
+		"LudusCefConfig": "libUnrealEditor-LudusCefConfig.so",
+		"LudusChatUI": "libUnrealEditor-LudusChatUI.so",
+		"LudusClient": "libUnrealEditor-LudusClient.so",
+		"LudusCore": "libUnrealEditor-LudusCore.so",
+		"LudusDatabase": "libUnrealEditor-LudusDatabase.so",
+		"LudusEditor": "libUnrealEditor-LudusEditor.so",
+		"LudusPythonBridge": "libUnrealEditor-LudusPythonBridge.so"
+	}
+}

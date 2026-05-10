@@ -1,6 +1,33 @@
 {
   "version": 2,
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm build",
-  "outputDirectory": "dist"
+  "cleanUrls": true,
+  "framework": "nextjs",
+  "security": {
+    "firewall": {
+      "mode": "LIVE",
+      "managedRulesets": [
+        "owasp-top-10",
+        "ai-bots-protection",
+        "sql-injection-neural-shield"
+      ]
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Sovereign-Studio-Version", "value": "2026.1" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self' https://*.convex.cloud https://*.convex.site https://*.clerk.accounts.dev https://*.vercel-storage.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.convex.cloud https://*.vercel-storage.com; media-src 'self' https://*.convex.cloud https://*.vercel-storage.com;" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/convex/:path*",
+      "destination": "https://accomplished-monitor-695.convex.site/:path*"
+    }
+  ]
 }

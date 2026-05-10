@@ -5,7 +5,7 @@ BookCinema utilizes a sovereign, high-performance production pipeline managed vi
 
 ---
 
-## 🚀 The 8-Phase Master Firing Cycle
+## 🚀 The 7-Phase Master Firing Cycle
 The pipeline autonomously conducts every scene through the following sovereign sequence:
 
 | Phase | Platform | Purpose | Integration |
@@ -17,7 +17,6 @@ The pipeline autonomously conducts every scene through the following sovereign s
 | **5** | **Nuke / Gizmo** | VFX & Mastery | 4K Compositing & Pixel Mastery |
 | **6** | **DaVinci Resolve** | Theatrical Mastering | HDR Grade & Dolby Atmos |
 | **7** | **Remotion** | Web-Native Assembly | Mobile Dashboard & Dynamic Captions |
-| **8** | **QML Bridge** | UX/UI Injection | Interactive HUDs & Menus |
 
 ---
 

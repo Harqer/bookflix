@@ -1,0 +1,13 @@
+{
+	"BuildId": "47537391",
+	"Modules": 
+	{
+		"LudusAppleWebBrowser": "UnrealEditor-LudusAppleWebBrowser.dylib",
+		"LudusChatUI": "UnrealEditor-LudusChatUI.dylib",
+		"LudusClient": "UnrealEditor-LudusClient.dylib",
+		"LudusCore": "UnrealEditor-LudusCore.dylib",
+		"LudusDatabase": "UnrealEditor-LudusDatabase.dylib",
+		"LudusEditor": "UnrealEditor-LudusEditor.dylib",
+		"LudusPythonBridge": "UnrealEditor-LudusPythonBridge.dylib"
+	}
+}

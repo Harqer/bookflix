@@ -18,7 +18,7 @@ if (fs.existsSync(envPath)) {
 
   lines.forEach((line) => {
     // Skip comments and empty lines
-    if (!line || line.trim().startsWith("#")) return;
+    if (!line || typeof line !== 'string' || line.trim().startsWith("#")) return;
 
     const match = line.match(/^([^=]+)=(.*)$/);
     if (match) {

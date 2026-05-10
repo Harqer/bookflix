@@ -1,9 +1,12 @@
+import React, { useState, useEffect } from "react";
 import { ScrollView, Text, View, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { useColors } from "@/hooks/use-colors";
+import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type ViewMode = "screenplay" | "scenes";
 
@@ -73,7 +76,7 @@ function SceneVideo({
               width: 60, 
               height: 60, 
               borderRadius: 30, 
-              backgroundColor: 'rgba(229, 9, 20, 0.9)', 
+              backgroundColor: 'rgba(63, 0, 255, 0.9)', // 💎 Ultramarine (High Trust)
               alignItems: 'center', 
               justifyContent: 'center',
               shadowColor: "#000",

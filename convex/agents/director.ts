@@ -1,185 +1,62 @@
-"use node";
 import { v } from "convex/values";
-import { ActionCtx, internalAction } from "../_generated/server";
-import { internal, api } from "../_generated/api";
-import { withSentry } from "../lib/sentry";
+import { internalAction } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { logger } from "../lib/observability";
-import { Id } from "../_generated/dataModel";
-import { protectAction } from "../arcjet";
-
-import { generateEmbedding } from "../lib/ai";
-import { tracedFetch } from "../lib/langsmith";
+import { runNvidiaChat } from "../lib/ai_service";
 
 /**
- * 🎬 Director Agent (Claude 3.5 Sonnet Edition)
- * Purpose: Narrative-to-Technical USD Orchestration.
- * Scaled: Powered by Upstash Redis for sub-millisecond brief caching.
+ * 🛰️ Sovereign Director Agent (Master Key Edition)
+ * Purpose: Narrative-to-Technical Manifest Conductor.
+ * Rigor: Barua (Semiotic Depth), Cowan (Authorial Co-Authorship), Stine (Cybernetic Motion).
  */
-
-interface AtmosphericDNA {
-  theme: string;
-  mood: string;
-  texture: string;
-  era: string;
-}
-
-async function fetchClaudeCinematography(apiKey: string, screenplay: string, dna: AtmosphericDNA): Promise<any> {
-  const url = "https://api.anthropic.com/v1/messages";
-  
-  const response = await tracedFetch(url, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-3-5-sonnet-20240620",
-      max_tokens: 4096,
-      messages: [{
-        role: "user",
-        content: `You are an Elite Cinematographer. Convert this screenplay into a Technical USD Manifest.
-        DNA: ${JSON.stringify(dna)}
-        Screenplay: ${screenplay}
-        
-        Return ONLY a JSON object with:
-        {
-          "camera": {"focalLength": 35, "aperture": 2.8, "motion": "static"},
-          "lighting": {"temperature": 5500, "intensity": 1.0, "style": "soft"},
-          "usdManifest": {"stages": [...]}
-        }`
-      }],
-    })
-  }, { agent: "director_claude" });
-
-  const data = await response.json();
-  if (!data.content || data.content.length === 0) throw new Error("Claude returned empty response");
-  
-  const rawText = data.content[0].text;
-  try {
-    // Robust JSON extraction
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    return JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
-  } catch (err) {
-    await logger.error("Director: Failed to parse Claude JSON", "parsing", { rawText });
-    throw new Error("Invalid technical brief format");
-  }
-}
-
-// --- Redis Cache Utility (Upstash) ---
-async function getRedisCache(key: string) {
-  if (!process.env.UPSTASH_REDIS_REST_URL) return null;
-  const url = `${process.env.UPSTASH_REDIS_REST_URL}/get/${key}`;
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` }
-  });
-  const data = await response.json();
-  return data.result ? JSON.parse(data.result) : null;
-}
-
-async function setRedisCache(key: string, value: any) {
-  if (!process.env.UPSTASH_REDIS_REST_URL) return;
-  const url = `${process.env.UPSTASH_REDIS_REST_URL}/set/${key}`;
-  await fetch(url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
-    body: JSON.stringify(value)
-  });
-}
-
-async function dispatchToCosmosSynthesis(ctx: ActionCtx, chapterId: Id<"chapters">, bookId: Id<"books">, brief: any) {
-  await logger.info("🌌 Queueing Cosmos Physical Synthesis Job...", chapterId, brief);
-  
-  // 🚀 Serverless Queueing: Dispatch to NVIDIA Cosmos 2.5
-  // We pass the full USD Manifest to ensure the spatial generation matches the brief.
-  await ctx.runMutation(internal.studio.createRenderJobInternal, {
-    chapterId,
-    bookId,
-    type: "cosmos",
-    config: {
-      camera: brief.camera,
-      lighting: brief.lighting,
-      usd: brief.usdManifest
-    },
-  });
-}
-
-async function dispatchToLightingMCP(ctx: ActionCtx, chapterId: Id<"chapters">, bookId: Id<"books">, brief: any) {
-  await logger.info("💡 Queueing Lighting Render Job...", chapterId, brief);
-  
-  // 🚀 Serverless Queueing: Push to render_jobs queue
-  await ctx.runMutation(internal.studio.createRenderJobInternal, {
-    chapterId,
-    bookId,
-    type: "lighting",
-    config: brief.lighting,
-  });
-}
-
 export const orchestrateChapterProduction = internalAction({
   args: {
-    chapterId: v.id("chapters"),
     bookId: v.id("books"),
+    chapterId: v.id("chapters"),
     screenplay: v.string(),
-    dna: v.object({
-      theme: v.string(),
-      mood: v.string(),
-      texture: v.string(),
-      era: v.string(),
-    }),
+    dna: v.any(),
   },
-  handler: async (ctx: ActionCtx, args) => {
-    return await withSentry("orchestrateChapterProduction", async () => {
-      const traceId = args.chapterId;
-      const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
+  handler: async (ctx, args): Promise<any> => {
+    const traceId = args.chapterId;
+    await logger.info("🛰️ Director: Synthesizing 'Timeless' Master Brief...", traceId);
 
-      await logger.info("Director: Orchestrating Chapter Production", traceId);
-
-      // 🛡️ ARCJET: Prompt Injection Detection
-      const identity = await ctx.auth.getUserIdentity();
-      await protectAction(identity?.subject || args.bookId, undefined, args.screenplay.substring(0, 1000));
-
-      // 1. 🛡️ Scalability: Sub-millisecond Redis Cache
-      const cacheKey = `brief:${args.chapterId}`;
-      const cachedBrief = await getRedisCache(cacheKey);
-
-      if (cachedBrief) {
-        await logger.info("♻️ Redis Cache Hit: Reusing Semantic Brief", traceId);
-        return { status: "ready_to_render", brief: cachedBrief };
+    const systemPrompt = `You are a Sovereign Cinematic Director. 
+    Your mission is to perform a 'Dissection of Meaning' (Logos gives Likeness).
+    
+    DIRECTORIAL KEYS:
+    - SEMIOTIC RIGOR: Use lens choice and light-density as 'Couriers of Truth.' 
+    - ARTISTIC VULNERABILITY: Adhere to 'Mficha uchi hazai'—bare the soul of the scene. Allow underexposure or raw texture if it serves the narrative essence.
+    - STAGING IN DEPTH: Mandate 'Profondeur de champ.' Use multiple planes of action to create drama without montage.
+    - CYBERNETIC MOTION: Treat the camera as a 'Light Lathe' (An Iron Hand carving light).
+    
+    ### SCREENPLAY: ${args.screenplay}
+    ### ATMOSPHERIC DNA: ${JSON.stringify(args.dna)}
+    
+    OUTPUT FORMAT (JSON ONLY):
+    {
+      "thematicEssence": "string",
+      "narrativeIntent": "A one-sentence summary of the directorial goal for this scene.",
+      "stagingStrategy": "multi_plane_depth",
+      "lightingPhilosophy": "soft_bounce_naturalism",
+      "vulnerabilityLevel": "raw_truth",
+      "technicalDirectives": {
+         "opticalCharacter": "uncoated_refraction",
+         "motionLogic": "isomorphic_grounding",
+         "movementTechnique": "three_stage_track"
       }
+    }`;
 
-      // 2. High-Fidelity Cinematography via Claude 3.5 Sonnet
-      console.log("🛰️ Director: Starting Claude Synthesis with Key:", ANTHROPIC_API_KEY?.substring(0, 8) + "...");
-      const brief = await fetchClaudeCinematography(ANTHROPIC_API_KEY, args.screenplay, args.dna);
-      console.log("🛰️ Director: Claude Synthesis Complete. Brief Received.");
-      
-      // 3. Cache the brief for serverless orchestrators (Unreal/Maya)
-      // We use the chapterId as the screenplayHash for direct lookup
-      await ctx.runMutation(internal.studio.cacheBriefInternal, {
-        dna: args.dna,
-        screenplayHash: args.chapterId, 
-        brief,
-      });
+    // 🛰️ Calling Sovereign AI Service for Technical Scoping
+    const brief = await runNvidiaChat(
+      [{ role: "user", content: "GENERATE MASTER PRODUCTION BRIEF" }],
+      { 
+        traceId, 
+        systemPrompt,
+        responseFormat: "json_object"
+      }
+    );
 
-      await logger.info("🎬 Director: Scene Brief Generated & Cached", traceId);
-
-      // 4. Departmental Dispatch (Serverless Queueing)
-      await Promise.all([
-        dispatchToCosmosSynthesis(ctx, args.chapterId, args.bookId, brief),
-        dispatchToLightingMCP(ctx, args.chapterId, args.bookId, brief)
-      ]);
-
-      // 4. Persistence & Cache Update
-      await Promise.all([
-        ctx.runMutation(internal.studio.updateChapterInternal, {
-          chapterId: args.chapterId,
-          status: "ready_to_render",
-        }),
-        setRedisCache(cacheKey, brief)
-      ]);
-
-      await logger.info("✅ Chapter Production Orchestrated", traceId);
-      return { status: "ready_to_render", brief };
-    });
+    await logger.info("✅ Director: Master 'Timeless' Brief Synthesized.", traceId);
+    return brief;
   },
 });
