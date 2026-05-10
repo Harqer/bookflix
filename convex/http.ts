@@ -59,14 +59,14 @@ export const submitBook = httpAction(async (ctx, request) => {
 });
 
 export const nvidiaCallback = httpAction(async (ctx, request) => {
-  // 🛡️ Edge Security: Cloudflare Token Verification
-  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
-  const authResponse = await fetch("https://api.cloudflare.com/client/v4/user/tokens/verify", {
-    headers: { Authorization: `Bearer ${cfToken}` }
-  });
-  const authData = await authResponse.json();
+  // 🛡️ Edge Security: Verify incoming token
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const token = authHeader.substring(7);
   
-  if (!authData.success) {
+  if (token !== process.env.CLOUDFLARE_API_TOKEN) {
     return new Response("Edge Security Failure", { status: 403 });
   }
 

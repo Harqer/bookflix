@@ -30,9 +30,8 @@ export async function protectAction(
   clientContext?: { ip?: string, headers?: Record<string, string> }, 
   prompt?: string
 ) {
-  // 🛡️ DIRECTORIAL BYPASS: Skip Arcjet for local test identities or background processes without IP
+  // 🛡️ DIRECTORIAL BYPASS: Skip Arcjet for background processes without IP
   if (
-    clerkId === "test-director-local" || 
     !process.env.ARCJET_API_KEY ||
     !clientContext?.ip
   ) {

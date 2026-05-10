@@ -25,16 +25,20 @@ export const ingestVideo = action({
 
     // --- STEP: RUN (S3 UPLOAD) ---
     // Decoupled from component logic for security and reliability.
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      throw new Error("AWS credentials are not configured properly.");
+    }
+
     const s3 = new S3Client({
       region: process.env.AWS_REGION || "us-east-1",
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
     });
 
     const buffer = Buffer.from(args.fileBase64, "base64");
-    const bucketName = "bookflix-renders-production"; // Matches Terraform
+    const bucketName = process.env.AWS_S3_BUCKET_NAME || "bookflix-renders-production";
 
     const command = new PutObjectCommand({
       Bucket: bucketName,

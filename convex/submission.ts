@@ -21,11 +21,10 @@ export const submitBookProtected = action({
     console.log("🚀 [Submission] Starting protected submission cycle...");
     
     const userIdentity = await ctx.auth.getUserIdentity();
-    const identity = userIdentity || { 
-      subject: "test-director-local", 
-      issuer: "local", 
-      name: "Local Director" 
-    };
+    if (!userIdentity) {
+      throw new Error("Unauthorized");
+    }
+    const identity = userIdentity;
 
     console.log("🛡️ [Submission] Identity verified:", identity.subject);
 

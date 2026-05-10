@@ -78,6 +78,10 @@ async function runRepairFleet(ctx: any, nodeType: string): Promise<any> {
   const targetUrl = audit.missing?.map((p: string) => binaryUrlMap[p]).filter(Boolean)[0];
   if (!targetUrl) throw new Error("No infrastructure URL found for missing plugins.");
 
+  if (!targetUrl.startsWith("https://assets.cinegraph.studio/")) {
+    throw new Error("Invalid URL. Only trusted registry URLs are allowed.");
+  }
+
   await logger.info(`🛰️ TD: Commanding node to Siphon binary from Registry: ${targetUrl}`, traceId);
   
   let provisionResult;
@@ -146,7 +150,7 @@ export const repairFleet = internalAction({
   handler: async (ctx, args) => await runRepairFleet(ctx, args.nodeType),
 });
 
-export const forceHardening = action({
+export const forceHardening = internalAction({
   args: {
     platforms: v.array(v.string()),
   },
