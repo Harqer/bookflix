@@ -209,7 +209,7 @@ peft==0.18.1
     # via
     #   -r docker_requirements.in
     #   kimodo
-pillow==12.2.0
+pillow>=12.2.0
     # via
     #   -r docker_requirements.in
     #   gradio
