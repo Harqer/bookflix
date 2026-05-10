@@ -14,7 +14,7 @@ ipdb
 fire
 h5py
 kornia
-opencv-python
+opencv-python>=4.13.0.92
 ipython>=8.24.0
 timm
 scipy
