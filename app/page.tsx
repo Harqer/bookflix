@@ -1,65 +1,49 @@
-import Image from "next/image";
+import { CoffeeLogo } from "@/components/coffee-logo";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+const Page = () => {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="flex min-h-screen items-center justify-center px-6 py-16">
+      <section className="coffee-shell w-full max-w-6xl p-8 md:p-12 lg:p-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-6">
+            <div className="coffee-pill">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#9a5a3a]" />
+              Warm reading, softly brewed
+            </div>
+
+            <div className="space-y-4">
+              <h1 className="text-4xl font-semibold tracking-tight text-[#4a2a1d] sm:text-5xl lg:text-6xl">
+                Cozy stories, comfort in every page.
+              </h1>
+              <p className="max-w-xl text-lg leading-8 text-[#6f4d3a]">
+                A velvet-toned reading space for curious minds, where every book feels like a quiet corner and a warm cup of coffee.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button className="coffee-button">
+                Discover the collection
+              </Button>
+              <Button variant="outline" className="coffee-button-secondary">
+                Browse the mood
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-center lg:justify-end">
+            <div className="coffee-panel">
+              <div className="absolute inset-x-8 top-4 h-24 rounded-full bg-[#d8b48b]/30 blur-3xl" />
+              <CoffeeLogo className="relative mx-auto h-56 w-56 sm:h-64 sm:w-64" />
+              <div className="coffee-note mt-6">
+                A velvet café for stories, notes, and quiet mornings.
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
-}
+};
+
+export default Page;
